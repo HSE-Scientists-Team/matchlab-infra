@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: matchlab-images
+  namespace: flux-system
+data:
+  GATEWAY_IMAGE: ghcr.io/hse-scientists-team/matchlab-backend/gateway:sha-REPLACE_WITH_COMMIT
+  AUTH_IMAGE: ghcr.io/hse-scientists-team/matchlab-backend/auth:sha-REPLACE_WITH_COMMIT
+  USER_IMAGE: ghcr.io/hse-scientists-team/matchlab-backend/user:sha-REPLACE_WITH_COMMIT
+  MAIL_IMAGE: ghcr.io/hse-scientists-team/matchlab-backend/mail:sha-REPLACE_WITH_COMMIT
+  API_DOCS_IMAGE: ghcr.io/hse-scientists-team/matchlab-backend/api-docs:sha-REPLACE_WITH_COMMIT

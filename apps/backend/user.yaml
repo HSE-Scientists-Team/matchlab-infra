@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: user
+spec:
+  selector:
+    app: user
+  ports:
+  - name: grpc
+    port: 8082
+    targetPort: 8082
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user
+  template:
+    metadata:
+      labels:
+        app: user
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+      containers:
+      - name: user
+        image: ${USER_IMAGE}
+        args:
+        - -config
+        - /etc/app/config.yaml
+        ports:
+        - containerPort: 8082
+        volumeMounts:
+        - name: config
+          mountPath: /etc/app
+          readOnly: true
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            memory: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        readinessProbe:
+          grpc: &id001
+            port: 8082
+          periodSeconds: 5
+        livenessProbe:
+          grpc: *id001
+          periodSeconds: 10
+        startupProbe:
+          grpc: *id001
+          periodSeconds: 5
+          failureThreshold: 120
+        env:
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: matchlab-postgres
+              key: password
+      volumes:
+      - name: config
+        configMap:
+          name: user-config

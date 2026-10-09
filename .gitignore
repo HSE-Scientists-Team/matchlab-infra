@@ -1,0 +1,10 @@
+.idea/
+.env
+*.local.yaml
+secrets/
+kubeconfig*
+*.key
+.DS_Store
+.env.*
+.local/
+.kube/

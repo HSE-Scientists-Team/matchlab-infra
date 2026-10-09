@@ -1,0 +1,14 @@
+grpc:
+  host: 0.0.0.0
+  port: 8081
+redis:
+  host: redis
+  port: 6379
+  db: 0
+postgres:
+  host: postgres
+  port: 5432
+  database: matchlab
+  user: matchlab
+  ssl_mode: disable
+  migration_timeout: 5m

@@ -1,0 +1,65 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: matchlab-secrets
+  namespace: flux-system
+spec:
+  interval: 1m
+  retryInterval: 30s
+  timeout: 5m
+  path: ./apps/secrets
+  prune: true
+  suspend: false
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  targetNamespace: matchlab
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: matchlab-platform
+  namespace: flux-system
+spec:
+  interval: 1m
+  retryInterval: 30s
+  timeout: 10m
+  path: ./apps/platform
+  prune: true
+  suspend: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  targetNamespace: matchlab
+  wait: true
+  dependsOn:
+  - name: matchlab-secrets
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: matchlab-backend
+  namespace: flux-system
+spec:
+  interval: 1m
+  retryInterval: 30s
+  timeout: 10m
+  path: ./apps/backend
+  prune: true
+  suspend: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  targetNamespace: matchlab
+  wait: true
+  dependsOn:
+  - name: matchlab-platform
+  postBuild:
+    substituteFrom:
+    - kind: ConfigMap
+      name: matchlab-images
+      optional: false

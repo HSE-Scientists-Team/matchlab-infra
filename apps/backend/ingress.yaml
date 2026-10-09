@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gateway
+spec:
+  ingressClassName: traefik
+  tls:
+  - hosts:
+    - api.matchlab.space
+    secretName: matchlab-api-tls
+  rules:
+  - host: api.matchlab.space
+    http:
+      paths:
+      - path: /docs
+        pathType: Prefix
+        backend:
+          service:
+            name: api-docs
+            port:
+              number: 8080
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: gateway
+            port:
+              number: 8080

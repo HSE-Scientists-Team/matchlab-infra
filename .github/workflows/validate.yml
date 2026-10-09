@@ -1,0 +1,20 @@
+name: Проверить манифесты
+on:
+  pull_request:
+  push:
+    branches: [master]
+permissions:
+  contents: read
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-kubectl@v4
+        with:
+          version: v1.36.1
+      - name: Собрать Kustomize базы
+        run: |
+          for path in clusters/homelab apps/secrets apps/platform apps/backend; do
+            kubectl kustomize "$path" > /dev/null
+          done

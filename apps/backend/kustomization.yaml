@@ -1,0 +1,22 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- gateway.yaml
+- auth.yaml
+- user.yaml
+- mail.yaml
+- ingress.yaml
+- api-docs.yaml
+configMapGenerator:
+- name: gateway-config
+  files:
+  - config.yaml=config/gateway.yaml
+- name: auth-config
+  files:
+  - config.yaml=config/auth.yaml
+- name: user-config
+  files:
+  - config.yaml=config/user.yaml
+- name: mail-config
+  files:
+  - config.yaml=config/mail.yaml

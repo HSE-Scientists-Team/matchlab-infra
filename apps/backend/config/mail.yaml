@@ -1,0 +1,16 @@
+grpc:
+  host: 0.0.0.0
+  port: 8083
+smtp:
+  host: postbox.cloud.yandex.net
+  port: 587
+  from: noreply@matchlab.space
+  verification_url: https://matchlab.space/verify-email
+  require_starttls: true
+postgres:
+  host: postgres
+  port: 5432
+  database: matchlab
+  user: matchlab
+  ssl_mode: disable
+  migration_timeout: 5m
