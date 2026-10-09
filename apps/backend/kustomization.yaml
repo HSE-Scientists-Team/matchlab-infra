@@ -20,3 +20,11 @@ configMapGenerator:
 - name: mail-config
   files:
   - config.yaml=config/mail.yaml
+patches:
+- target:
+    kind: Deployment
+  patch: |-
+    - op: add
+      path: /spec/template/spec/imagePullSecrets
+      value:
+      - name: ghcr-pull
