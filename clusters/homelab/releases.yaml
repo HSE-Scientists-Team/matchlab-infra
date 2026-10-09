@@ -30,7 +30,7 @@ spec:
   timeout: 10m
   path: ./apps/platform
   prune: true
-  suspend: true
+  suspend: false
   sourceRef:
     kind: GitRepository
     name: flux-system
