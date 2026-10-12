@@ -1,0 +1,61 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: seaweedfs-init
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: enabled
+spec:
+  backoffLimit: 3
+  activeDeadlineSeconds: 300
+  template:
+    metadata:
+      labels:
+        app: seaweedfs-init
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: init
+        image: amazon/aws-cli:2.36.42@sha256:f88a264623a4e6700f226ec3f90b902b1a4010810fce1edade1f269a7c071052
+        command: [/bin/sh, -c]
+        args:
+        - |
+          set -eu
+          until aws --endpoint-url "$S3_ENDPOINT" s3api list-buckets >/dev/null 2>&1; do
+            sleep 2
+          done
+          if ! aws --endpoint-url "$S3_ENDPOINT" s3api head-bucket --bucket "$S3_BUCKET" >/dev/null 2>&1; then
+            aws --endpoint-url "$S3_ENDPOINT" s3api create-bucket --bucket "$S3_BUCKET"
+          fi
+          aws --endpoint-url "$S3_ENDPOINT" s3api put-bucket-cors --bucket "$S3_BUCKET" --cors-configuration file:///etc/seaweedfs/cors.json
+          aws --endpoint-url "$S3_ENDPOINT" s3api head-bucket --bucket "$S3_BUCKET"
+        env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: matchlab-s3
+              key: admin-access-key
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: matchlab-s3
+              key: admin-secret-key
+        - name: AWS_DEFAULT_REGION
+          value: us-east-1
+        - name: S3_ENDPOINT
+          value: http://seaweedfs:8333
+        - name: S3_BUCKET
+          value: matchlab-media
+        volumeMounts:
+        - name: config
+          mountPath: /etc/seaweedfs
+          readOnly: true
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            memory: 256Mi
+      volumes:
+      - name: config
+        configMap:
+          name: seaweedfs-config

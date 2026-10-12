@@ -1,0 +1,105 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: seaweedfs
+spec:
+  selector:
+    app: seaweedfs
+  ports:
+  - name: s3
+    port: 8333
+    targetPort: s3
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: seaweedfs
+spec:
+  serviceName: seaweedfs
+  replicas: 1
+  selector:
+    matchLabels:
+      app: seaweedfs
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
+  template:
+    metadata:
+      labels:
+        app: seaweedfs
+    spec:
+      nodeSelector:
+        matchlab.io/storage: 'true'
+      containers:
+      - name: seaweedfs
+        image: chrislusf/seaweedfs:4.47@sha256:ce9e796f1fe6f06968f4c04bdaf8f678dad9c8acdfef3d244133d71bfa6bf882
+        args: [mini, '-dir=/data', '-s3.config=/etc/seaweedfs/s3.json']
+        ports:
+        - name: s3
+          containerPort: 8333
+        - name: master
+          containerPort: 9333
+        env:
+        - name: S3_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: matchlab-s3
+              key: admin-access-key
+        - name: S3_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: matchlab-s3
+              key: admin-secret-key
+        - name: S3_MEDIA_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: matchlab-s3
+              key: media-access-key
+        - name: S3_MEDIA_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: matchlab-s3
+              key: media-secret-key
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: config
+          mountPath: /etc/seaweedfs
+          readOnly: true
+        startupProbe:
+          httpGet:
+            path: /cluster/status
+            port: master
+          periodSeconds: 5
+          failureThreshold: 60
+        readinessProbe:
+          tcpSocket:
+            port: s3
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /cluster/status
+            port: master
+          periodSeconds: 10
+          failureThreshold: 6
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+          limits:
+            memory: 1Gi
+      volumes:
+      - name: config
+        configMap:
+          name: seaweedfs-config
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+      annotations:
+        kustomize.toolkit.fluxcd.io/prune: disabled
+    spec:
+      accessModes: [ReadWriteOnce]
+      storageClassName: local-path
+      resources:
+        requests:
+          storage: 10Gi
