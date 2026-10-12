@@ -9,3 +9,5 @@ data:
   USER_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/user@sha256:00fab2a04dfaa6e63301921206991c9f659d175bd0ef1ce3dfa2724c178605fa
   MAIL_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/mail@sha256:f3fb30d015af6b3068e0dde0a7723416f276865dfacb9d0bf8cacbb06d32326a
   API_DOCS_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/api-docs@sha256:d44224243daf58817fb56c39337b99d2d2b766a8791910ce7ac253ef5735fc37
+  # Заполняется CI после первой сборки Media; Deployment пока не включён.
+  MEDIA_IMAGE: ''

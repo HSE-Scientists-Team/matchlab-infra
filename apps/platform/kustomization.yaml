@@ -3,3 +3,10 @@ kind: Kustomization
 resources:
 - postgres.yaml
 - redis.yaml
+- s3.yaml
+- s3-init.yaml
+configMapGenerator:
+- name: seaweedfs-config
+  files:
+  - s3.json=config/s3.json
+  - cors.json=config/cors.json
