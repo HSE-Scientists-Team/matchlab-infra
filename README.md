@@ -7,12 +7,12 @@ Kubernetes-манифесты и GitOps MatchLab на Flux CD и Kustomize. Ко
 - `clusters/homelab/` — Flux, namespace приложения и версии образов в `images.yaml`.
 - `apps/secrets/` — Kubernetes Secret, зашифрованные SOPS/age; private key находится вне Git.
 - `apps/platform/` — PostgreSQL и SeaweedFS S3 с локальными PVC, Redis.
-- `apps/backend/` — четыре backend-сервиса, Scalar, ConfigMap и публичный Ingress Gateway.
+- `apps/backend/` — пять backend-сервисов, Scalar, ConfigMap и публичный Ingress Gateway.
 - `.github/workflows/validate.yml` — проверка сборки Kustomize.
 
 ## GitOps
 
-Успешная ручная сборка в backend может создать PR с digest выбранных образов. После слияния Flux обновляет соответствующие Deployment. Секреты расшифровывает Flux; платформенные сервисы зависят от Secret, backend — от готовности платформы. Все четыре backend-сервиса применяют общий SQL-набор перед открытием API под PostgreSQL advisory-блокировкой.
+Успешная ручная сборка в backend может создать PR с digest выбранных образов. После слияния Flux обновляет соответствующие Deployment. Секреты расшифровывает Flux; платформенные сервисы зависят от Secret, backend — от готовности платформы. Все пять backend-сервисов применяют общий SQL-набор перед открытием API под PostgreSQL advisory-блокировкой.
 
 Несекретная конфигурация монтируется из ConfigMap, пароли передаются через ссылки `secretKeyRef`. Scalar доступен через `/docs/` на origin Gateway. PostgreSQL закреплён за узлом с меткой `matchlab.io/storage=true`; Redis не имеет постоянного тома.
 
@@ -20,13 +20,13 @@ Kubernetes-манифесты и GitOps MatchLab на Flux CD и Kustomize. Ко
 
 ## S3
 
-SeaweedFS предоставляет внутренний endpoint `http://seaweedfs:8333`, регион `us-east-1`, path-style bucket `matchlab-media`. StatefulSet хранит данные на отдельном PVC 10Gi с сохранением при удалении и масштабировании. Это одна реплика с локальным томом; для восстановления нужны резервные копии объектов и метаданных. S3, filer и административные интерфейсы не публикуются наружу.
+SeaweedFS предоставляет внутренний endpoint `http://seaweedfs:8333`, регион `us-east-1`, path-style bucket `matchlab-media`. StatefulSet хранит данные на отдельном PVC 10Gi с сохранением при удалении и масштабировании. Это одна реплика с локальным томом; для восстановления нужны резервные копии объектов и метаданных. Traefik публикует только S3-путь bucket `/matchlab-media` на `https://api.matchlab.space`, без переписывания пути или Host: это сохраняет подпись SigV4. Filer и административные интерфейсы остаются внутренними. Bucket приватный: клиент использует подписанные ссылки Media.
 
 `seaweedfs-init` идемпотентно создаёт приватный bucket и CORS для `https://api.matchlab.space`. IAM-политика разрешает ключам Media чтение, запись, удаление и multipart только в этом bucket. Администраторские ключи используются хранилищем и init-джобой; выдавать их Media не требуется.
 
-Secret `matchlab-s3` зашифрован SOPS: `admin-access-key`, `admin-secret-key`, `media-access-key`, `media-secret-key`. Для будущего Deployment Media последние два ключа передаются через `secretKeyRef` в `S3_MEDIA_ACCESS_KEY` и `S3_MEDIA_SECRET_KEY`; пароль БД — из `matchlab-postgres`. Несекретные настройки Media должны монтироваться из ConfigMap. `MEDIA_IMAGE` зарезервирован для CI, Deployment Media пока не активирован.
+Secret `matchlab-s3` зашифрован SOPS: `admin-access-key`, `admin-secret-key`, `media-access-key`, `media-secret-key`. В Deployment Media последние два ключа передаются через `secretKeyRef` в `S3_MEDIA_ACCESS_KEY` и `S3_MEDIA_SECRET_KEY`; пароль БД — из `matchlab-postgres`. Несекретные настройки Media монтируются из ConfigMap. Digest `MEDIA_IMAGE` обновляется CI; Gateway подключается к внутреннему gRPC Service `media:8085`.
 
-Для клиентских подписанных URL при выпуске Media нужен отдельный доступный клиентам HTTPS S3 endpoint, согласованный `s3.public_endpoint`, DNS/TLS и CORS frontend-origin. Внутренний DNS `seaweedfs` клиентам недоступен. Изменения CORS или шаблона init-джобы пересоздают Job через Flux force; завершённая Job остаётся в GitOps. Ротация S3-ключей требует согласованного обновления Secret и перезапуска SeaweedFS и Media.
+Для клиентских подписанных URL `s3.public_endpoint` задан как `https://api.matchlab.space`; path-style SDK добавляет имя bucket к пути. Внутренние запросы Media используют `http://seaweedfs:8333`. Для нового frontend-origin нужно обновить CORS bucket. Изменения CORS или шаблона init-джобы пересоздают Job через Flux force; завершённая Job остаётся в GitOps. Ротация S3-ключей требует согласованного обновления Secret и перезапуска SeaweedFS и Media.
 
 ## HTTPS
 

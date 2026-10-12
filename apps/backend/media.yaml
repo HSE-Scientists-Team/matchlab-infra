@@ -1,0 +1,84 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: media
+spec:
+  selector:
+    app: media
+  ports:
+  - name: grpc
+    port: 8085
+    targetPort: 8085
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: media
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: media
+  template:
+    metadata:
+      labels:
+        app: media
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+      containers:
+      - name: media
+        image: ${MEDIA_IMAGE}
+        args:
+        - -config
+        - /etc/app/config.yaml
+        ports:
+        - containerPort: 8085
+        volumeMounts:
+        - name: config
+          mountPath: /etc/app
+          readOnly: true
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            memory: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        readinessProbe:
+          grpc: &id001
+            port: 8085
+          periodSeconds: 5
+        livenessProbe:
+          grpc: *id001
+          periodSeconds: 10
+        startupProbe:
+          grpc: *id001
+          periodSeconds: 5
+          failureThreshold: 120
+        env:
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: matchlab-postgres
+              key: password
+        - name: S3_MEDIA_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: matchlab-s3
+              key: media-access-key
+        - name: S3_MEDIA_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: matchlab-s3
+              key: media-secret-key
+      volumes:
+      - name: config
+        configMap:
+          name: media-config

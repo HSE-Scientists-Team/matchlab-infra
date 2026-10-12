@@ -14,6 +14,13 @@ spec:
   - host: api.matchlab.space
     http:
       paths:
+      - path: /matchlab-media
+        pathType: Prefix
+        backend:
+          service:
+            name: seaweedfs
+            port:
+              number: 8333
       - path: /docs
         pathType: Prefix
         backend:
