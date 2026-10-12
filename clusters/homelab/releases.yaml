@@ -58,8 +58,45 @@ spec:
   wait: true
   dependsOn:
   - name: matchlab-platform
+  - name: matchlab-tls
   postBuild:
     substituteFrom:
     - kind: ConfigMap
       name: matchlab-images
       optional: false
+
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: matchlab-cert-manager
+  namespace: flux-system
+spec:
+  interval: 10m
+  retryInterval: 30s
+  timeout: 10m
+  path: ./apps/cert-manager
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  wait: true
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: matchlab-tls
+  namespace: flux-system
+spec:
+  interval: 10m
+  retryInterval: 30s
+  timeout: 10m
+  path: ./apps/tls
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  targetNamespace: matchlab
+  wait: true
+  dependsOn:
+  - name: matchlab-cert-manager

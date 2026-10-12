@@ -15,6 +15,6 @@ jobs:
           version: v1.36.1
       - name: Собрать Kustomize базы
         run: |
-          for path in clusters/homelab apps/secrets apps/platform apps/backend; do
+          for path in clusters/homelab apps/secrets apps/platform apps/backend apps/cert-manager apps/tls; do
             kubectl kustomize "$path" > /dev/null
           done
