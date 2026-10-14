@@ -7,12 +7,12 @@ Kubernetes-манифесты и GitOps MatchLab на Flux CD и Kustomize. Ко
 - `clusters/homelab/` — Flux, namespace приложения и версии образов в `images.yaml`.
 - `apps/secrets/` — Kubernetes Secret, зашифрованные SOPS/age; private key находится вне Git.
 - `apps/platform/` — PostgreSQL и SeaweedFS S3 с локальными PVC, Redis.
-- `apps/backend/` — пять backend-сервисов, Scalar, ConfigMap и публичный Ingress Gateway.
+- `apps/backend/` — шесть backend-сервисов, Scalar, ConfigMap и публичный Ingress Gateway.
 - `.github/workflows/validate.yml` — проверка сборки Kustomize.
 
 ## GitOps
 
-Успешная ручная сборка в backend может создать PR с digest выбранных образов. После слияния Flux обновляет соответствующие Deployment. Секреты расшифровывает Flux; платформенные сервисы зависят от Secret, backend — от готовности платформы. Все пять backend-сервисов применяют общий SQL-набор перед открытием API под PostgreSQL advisory-блокировкой.
+Успешная ручная сборка в backend может создать PR с digest выбранных образов. После слияния Flux обновляет соответствующие Deployment. Секреты расшифровывает Flux; платформенные сервисы зависят от Secret, backend — от готовности платформы. Все шесть backend-сервисов применяют общий SQL-набор перед открытием API под PostgreSQL advisory-блокировкой.
 
 Несекретная конфигурация монтируется из ConfigMap, пароли передаются через ссылки `secretKeyRef`. Scalar доступен через `/docs/` на origin Gateway. PostgreSQL закреплён за узлом с меткой `matchlab.io/storage=true`; Redis не имеет постоянного тома.
 
@@ -35,3 +35,7 @@ Secret `matchlab-s3` зашифрован SOPS: `admin-access-key`, `admin-secre
 DNS A-запись домена должна вести на публичный адрес ingress. TCP 80 нужен для HTTP-01 challenge и редиректа, TCP 443 — для HTTPS. Certificate готовится после cert-manager; backend зависит от готовности TLS. Traefik обслуживает API и Scalar по HTTPS, отдельный HTTP Ingress перенаправляет на HTTPS. Временный Ingress cert-manager для `/.well-known/acme-challenge/` не наследует middleware редиректа.
 
 Документация доступна по `https://api.matchlab.space/docs/`, проверка API — `https://api.matchlab.space/health`. CORS и API-запросы Scalar работают на том же origin. При смене домена нужно согласованно обновить DNS, Certificate, Ingress и связанные конфигурации.
+
+## Support
+
+Support создаёт жалобы через внутренний gRPC Service `support:8086`, проверяет вложения через `media:8085` и хранит жалобы в PostgreSQL. Gateway получает адрес Support из ConfigMap; пароль PostgreSQL передаётся через `matchlab-postgres`. `SUPPORT_IMAGE` обновляется CI вместе с остальными digest. Для HTTP-маршрута жалоб нужно выпустить Gateway и Scalar из версии backend с Support. Внешние порты для gRPC не открываются.

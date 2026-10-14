@@ -6,6 +6,7 @@ resources:
 - user.yaml
 - mail.yaml
 - media.yaml
+- support.yaml
 - ingress.yaml
 - api-docs.yaml
 configMapGenerator:
@@ -24,6 +25,9 @@ configMapGenerator:
 - name: media-config
   files:
   - config.yaml=config/media.yaml
+- name: support-config
+  files:
+  - config.yaml=config/support.yaml
 patches:
 - target:
     kind: Deployment
