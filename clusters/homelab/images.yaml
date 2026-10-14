@@ -4,10 +4,10 @@ metadata:
   name: matchlab-images
   namespace: flux-system
 data:
-  GATEWAY_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/gateway@sha256:9ffa5a6bafc73eb7191e8872168153babb747440a6a5c321a768bf3ffc743b46
-  AUTH_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/auth@sha256:fc2c8fc580f6aed669a3003d008627e03e692b670b121751adc38dd4d996fb0d
-  USER_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/user@sha256:73afa32564f3d8bd29196d7a6efa21291aadb4a5eee7e49dd79192ad1dc7638f
-  MAIL_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/mail@sha256:53b989f60b18b6848dab0b8b6f823da4b4eebf6de4f13ed47e23e3d3b98577f1
-  API_DOCS_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/api-docs@sha256:94ae5a7cfc178345c6e1abda401860c42d3dd734d4c8d805beba8304737ce30f
-  MEDIA_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/media@sha256:58ccfcecf6a3b373303162c019f7d32d3397c05cabf0bc4988a69e3d3b4534a7
-  SUPPORT_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/support@sha256:f5c09850298fdbe1693d76843be11c9049a9ce2588649b09282f0cb2ee381d87
+  GATEWAY_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/gateway@sha256:a107acd323a5a16edfbc7a780ce53422c0f6b87225e2bef0547ec5d6c481380f
+  AUTH_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/auth@sha256:a2bb9fadb23abbc9e1271721d44b51607a76348002bea55d31fd3e6adf1e56c3
+  USER_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/user@sha256:f9b182bad3cf157fa81079adc2306684662193a74dcfb1f58ee140d991cac427
+  MAIL_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/mail@sha256:573e60053ff99e1fd665e430ee85bc0b5d9c41ee98ffc04806569f8ef33b4cd1
+  API_DOCS_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/api-docs@sha256:8932ec52966ecc77d80d0da67017492fc77441605f8f3d95f7f92a4e69a1b2b3
+  MEDIA_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/media@sha256:a2213eb18b03fadcfead8333e922660ef15b5b0c36c93fa3e68ba64088ca5833
+  SUPPORT_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/support@sha256:74582b22bc688778bfbd294dbd7404db53ab3975f25bd99ab442805c2ef1fee7
