@@ -4,10 +4,10 @@ metadata:
   name: matchlab-images
   namespace: flux-system
 data:
-  GATEWAY_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/gateway@sha256:a107acd323a5a16edfbc7a780ce53422c0f6b87225e2bef0547ec5d6c481380f
-  AUTH_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/auth@sha256:a2bb9fadb23abbc9e1271721d44b51607a76348002bea55d31fd3e6adf1e56c3
-  USER_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/user@sha256:f9b182bad3cf157fa81079adc2306684662193a74dcfb1f58ee140d991cac427
-  MAIL_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/mail@sha256:573e60053ff99e1fd665e430ee85bc0b5d9c41ee98ffc04806569f8ef33b4cd1
-  API_DOCS_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/api-docs@sha256:8932ec52966ecc77d80d0da67017492fc77441605f8f3d95f7f92a4e69a1b2b3
-  MEDIA_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/media@sha256:a2213eb18b03fadcfead8333e922660ef15b5b0c36c93fa3e68ba64088ca5833
-  SUPPORT_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/support@sha256:74582b22bc688778bfbd294dbd7404db53ab3975f25bd99ab442805c2ef1fee7
+  GATEWAY_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/gateway@sha256:ca00e93f2fd72e49623a72ca740d203115d887a4901fd61208bb831300045d62
+  AUTH_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/auth@sha256:f63f1a73ae40493ab3615bd98725e63212b6eb000bccbcf8d1ae050e79b50780
+  USER_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/user@sha256:1c6d40f350a63fa892eea4ab69e606bd76380c46392a955542b726f1c53c6611
+  MAIL_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/mail@sha256:736d49f9a1cfea0ec0c2b323e83371eee6e22b32bdd5be9d66162a78d17f1a4b
+  API_DOCS_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/api-docs@sha256:0342e84dd65380eff7c4ec488bded3973493ec3ddbf6d70c489114d8e995d0e8
+  MEDIA_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/media@sha256:76a956963dd07a3088ed79b454802776d58ce0c3d60ff376923e77bf68c7f665
+  SUPPORT_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/support@sha256:6f36355066ec5d59548144581794353a57bbb8dc5236b7f57fb9290925e0443a
