@@ -10,3 +10,4 @@ data:
   MAIL_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/mail@sha256:53b989f60b18b6848dab0b8b6f823da4b4eebf6de4f13ed47e23e3d3b98577f1
   API_DOCS_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/api-docs@sha256:94ae5a7cfc178345c6e1abda401860c42d3dd734d4c8d805beba8304737ce30f
   MEDIA_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/media@sha256:58ccfcecf6a3b373303162c019f7d32d3397c05cabf0bc4988a69e3d3b4534a7
+  SUPPORT_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/support@sha256:f5c09850298fdbe1693d76843be11c9049a9ce2588649b09282f0cb2ee381d87
