@@ -7,6 +7,9 @@ resources:
 - mail.yaml
 - media.yaml
 - support.yaml
+- project.yaml
+- search.yaml
+- recommendation.yaml
 - ingress.yaml
 - api-docs.yaml
 configMapGenerator:
@@ -28,6 +31,15 @@ configMapGenerator:
 - name: support-config
   files:
   - config.yaml=config/support.yaml
+- name: project-config
+  files:
+  - config.yaml=config/project.yaml
+- name: search-config
+  files:
+  - config.yaml=config/search.yaml
+- name: recommendation-config
+  files:
+  - config.yaml=config/recommendation.yaml
 patches:
 - target:
     kind: Deployment

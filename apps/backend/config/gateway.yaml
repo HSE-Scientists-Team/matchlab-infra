@@ -13,6 +13,15 @@ media:
 support:
   host: support
   port: 8086
+project:
+  host: project
+  port: 8087
+search:
+  host: search
+  port: 8088
+recommendation:
+  host: recommendation
+  port: 8089
 cors:
   allowed_origins:
   - https://matchlab.space

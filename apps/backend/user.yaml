@@ -68,6 +68,11 @@ spec:
             secretKeyRef:
               name: matchlab-postgres
               key: password
+        - name: PROJECT_SYNC_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: matchlab-project-sync
+              key: token
       volumes:
       - name: config
         configMap:

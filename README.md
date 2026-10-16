@@ -7,12 +7,12 @@ Kubernetes-манифесты и GitOps MatchLab на Flux CD и Kustomize. Ко
 - `clusters/homelab/` — Flux, namespace приложения и версии образов в `images.yaml`.
 - `apps/secrets/` — Kubernetes Secret, зашифрованные SOPS/age; private key находится вне Git.
 - `apps/platform/` — PostgreSQL и SeaweedFS S3 с локальными PVC, Redis.
-- `apps/backend/` — шесть backend-сервисов, Scalar, ConfigMap и публичный Ingress Gateway.
+- `apps/backend/` — девять backend-сервисов, Scalar, ConfigMap и публичный Ingress Gateway.
 - `.github/workflows/validate.yml` — проверка сборки Kustomize.
 
 ## GitOps
 
-Успешная ручная сборка в backend может создать PR с digest выбранных образов. После слияния Flux обновляет соответствующие Deployment. Секреты расшифровывает Flux; платформенные сервисы зависят от Secret, backend — от готовности платформы. Все шесть backend-сервисов применяют общий SQL-набор перед открытием API под PostgreSQL advisory-блокировкой.
+Успешная ручная сборка в backend может создать PR с digest выбранных образов. После слияния Flux обновляет соответствующие Deployment. Секреты расшифровывает Flux; платформенные сервисы зависят от Secret, backend — от готовности платформы. Все девять backend-сервисов применяют общий SQL-набор перед открытием API под PostgreSQL advisory-блокировкой.
 
 Несекретная конфигурация монтируется из ConfigMap, пароли передаются через ссылки `secretKeyRef`. Scalar доступен через `/docs/` на origin Gateway. PostgreSQL закреплён за узлом с меткой `matchlab.io/storage=true`; Redis не имеет постоянного тома.
 
@@ -39,3 +39,11 @@ DNS A-запись домена должна вести на публичный 
 ## Support
 
 Support создаёт жалобы через внутренний gRPC Service `support:8086`, проверяет вложения через `media:8085` и хранит жалобы в PostgreSQL. Gateway получает адрес Support из ConfigMap; пароль PostgreSQL передаётся через `matchlab-postgres`. `SUPPORT_IMAGE` обновляется CI вместе с остальными digest. Для HTTP-маршрута жалоб нужно выпустить Gateway и Scalar из версии backend с Support. Внешние порты для gRPC не открываются.
+
+## Проекты, поиск и рекомендации
+
+Project (`project:8087`) хранит проекты, роли, участников, заявки и приглашения. Search (`search:8088`) обращается к User и Project; Recommendation (`recommendation:8089`) использует User и Search для случайных рекомендаций людей и проектов. Gateway получает внутренние адреса из ConfigMap; наружу доступен только HTTP API Gateway. Административные gRPC-методы не публикуются через Gateway.
+
+Все три сервиса получают пароль PostgreSQL через `matchlab-postgres`, в том числе для общих миграций. Project передаёт состав и состояние проектов в User через outbox. Одинаковый `PROJECT_SYNC_TOKEN` поступает в оба Deployment из SOPS Secret `matchlab-project-sync`, ключ `token`. При ротации нужно обновить Secret и перезапустить оба Deployment; outbox повторяет временно неудачные доставки.
+
+Релиз KAN-39 включает миграцию `00006`: обновляйте весь набор Go-образов вместе, поскольку старые бинарники не распознают новую историю миграций при перезапуске. Scalar также обновляется для новых HTTP-маршрутов. Версии всех десяти образов закреплены digest в `clusters/homelab/images.yaml`.
