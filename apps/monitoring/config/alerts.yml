@@ -16,7 +16,8 @@ groups:
     annotations:
       summary: 'Deployment has unavailable replicas: {{ $labels.deployment }}'
   - alert: ApplicationServerErrors
-    expr: sum by (service) (rate(matchlab_requests_total{protocol="http",result=~"5.."}[5m])) / clamp_min(sum by (service) (rate(matchlab_requests_total{protocol="http"}[5m])), 0.01) > 0.05
+    expr: sum by (service) (rate(matchlab_requests_total{protocol="http",result=~"5.."}[5m])) / clamp_min(sum by (service) (rate(matchlab_requests_total{protocol="http"}[5m])),
+      0.01) > 0.05
     for: 5m
     labels:
       severity: warning
@@ -44,16 +45,26 @@ groups:
     annotations:
       summary: Dedicated metrics filesystem has less than 1 GiB available
   - alert: PrometheusStorageBudget
-    expr: prometheus_tsdb_storage_blocks_bytes + prometheus_tsdb_wal_storage_size_bytes + prometheus_tsdb_head_chunks_storage_size_bytes > 8 * 1024 * 1024 * 1024
+    expr: prometheus_tsdb_storage_blocks_bytes + prometheus_tsdb_wal_storage_size_bytes + prometheus_tsdb_head_chunks_storage_size_bytes > 8 * 1024 * 1024
+      * 1024
     for: 5m
     labels:
       severity: warning
     annotations:
       summary: Prometheus data approaching the 10 GiB storage budget
   - alert: ContainerOOMKilled
-    expr: kube_pod_container_status_last_terminated_reason{namespace="matchlab",reason="OOMKilled"} == 1
+    expr: (increase(kube_pod_container_status_restarts_total{namespace="matchlab"}[10m]) > 0) and on (namespace, pod, container) (kube_pod_container_status_last_terminated_reason{namespace="matchlab",reason="OOMKilled"}
+      == 1)
     for: 1m
     labels:
       severity: warning
     annotations:
       summary: 'Container last terminated due to OOM: {{ $labels.pod }} / {{ $labels.container }}'
+  - alert: ContainerMemoryNearLimit
+    expr: max by (namespace, pod, container) (container_memory_working_set_bytes{namespace="matchlab",container!="",container!="POD"}) / on (namespace,
+      pod, container) max by (namespace, pod, container) (kube_pod_container_resource_limits{namespace="matchlab",resource="memory"} > 0) > 0.85
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: 'Container working set above 85% of memory limit: {{ $labels.pod }} / {{ $labels.container }}'
