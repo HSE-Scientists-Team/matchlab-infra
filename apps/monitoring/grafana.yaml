@@ -41,9 +41,9 @@ spec:
         resources:
           requests:
             cpu: 50m
-            memory: 64Mi
+            memory: 256Mi
           limits:
-            memory: 384Mi
+            memory: 1Gi
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
@@ -61,17 +61,21 @@ spec:
             secretKeyRef:
               name: matchlab-grafana
               key: password
+        - name: GOMEMLIMIT
+          value: 768MiB
         readinessProbe:
           httpGet:
             path: /api/health
             port: 3000
           periodSeconds: 10
+          timeoutSeconds: 5
         startupProbe:
           httpGet:
             path: /api/health
             port: 3000
           periodSeconds: 5
           failureThreshold: 60
+          timeoutSeconds: 5
         volumeMounts:
         - name: data
           mountPath: /var/lib/grafana
