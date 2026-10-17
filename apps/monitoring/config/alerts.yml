@@ -1,0 +1,59 @@
+groups:
+- name: matchlab
+  rules:
+  - alert: MetricsTargetDown
+    expr: up == 0
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: 'Metrics target unavailable: {{ $labels.job }} / {{ $labels.instance }}'
+  - alert: ServiceDeploymentUnavailable
+    expr: kube_deployment_status_replicas_available{namespace="matchlab"} < kube_deployment_spec_replicas{namespace="matchlab"}
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: 'Deployment has unavailable replicas: {{ $labels.deployment }}'
+  - alert: ApplicationServerErrors
+    expr: sum by (service) (rate(matchlab_requests_total{protocol="http",result=~"5.."}[5m])) / clamp_min(sum by (service) (rate(matchlab_requests_total{protocol="http"}[5m])), 0.01) > 0.05
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: 'More than 5% HTTP server errors: {{ $labels.service }}'
+  - alert: NodeLowMemory
+    expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.1
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      summary: 'VM available memory below 10%: {{ $labels.node }}'
+  - alert: NodeLowDiskSpace
+    expr: node_filesystem_avail_bytes{mountpoint="/",fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{mountpoint="/",fstype!~"tmpfs|overlay"} < 0.15
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      summary: 'VM free disk space below 15%: {{ $labels.node }}'
+  - alert: MetricsVolumeLowDiskSpace
+    expr: node_filesystem_avail_bytes{mountpoint="/var/lib/matchlab-metrics"} < 1024 * 1024 * 1024
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: Dedicated metrics filesystem has less than 1 GiB available
+  - alert: PrometheusStorageBudget
+    expr: prometheus_tsdb_storage_blocks_bytes + prometheus_tsdb_wal_storage_size_bytes + prometheus_tsdb_head_chunks_storage_size_bytes > 8 * 1024 * 1024 * 1024
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: Prometheus data approaching the 10 GiB storage budget
+  - alert: ContainerOOMKilled
+    expr: kube_pod_container_status_last_terminated_reason{namespace="matchlab",reason="OOMKilled"} == 1
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      summary: 'Container last terminated due to OOM: {{ $labels.pod }} / {{ $labels.container }}'

@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-exporter
+spec:
+  selector:
+    matchLabels:
+      app: node-exporter
+  template:
+    metadata:
+      labels:
+        app: node-exporter
+        app.kubernetes.io/part-of: monitoring
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+      containers:
+      - name: node-exporter
+        image: prom/node-exporter:v1.12.1@sha256:1b4e4438faca4dd7e001dd445d161a4a2091b0fededa84093b3a8dfeae1f1be0
+        args:
+        - --path.procfs=/host/proc
+        - --path.sysfs=/host/sys
+        - --path.rootfs=/host/root
+        - --collector.disable-defaults
+        - --collector.cpu
+        - --collector.meminfo
+        - --collector.filesystem
+        - --collector.diskstats
+        - --collector.netdev
+        - --collector.loadavg
+        - --collector.uname
+        - --collector.stat
+        - --collector.time
+        - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|run|var/lib/kubelet/pods|var/lib/rancher/k3s/agent/containerd)(/|$)
+        ports:
+        - name: http
+          containerPort: 9100
+        resources:
+          requests:
+            cpu: 20m
+            memory: 64Mi
+          limits:
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: proc
+          mountPath: /host/proc
+          readOnly: true
+        - name: sys
+          mountPath: /host/sys
+          readOnly: true
+        - name: root
+          mountPath: /host/root
+          readOnly: true
+          mountPropagation: HostToContainer
+        readinessProbe:
+          httpGet:
+            path: /metrics
+            port: 9100
+          periodSeconds: 30
+      tolerations:
+      - operator: Exists
+        effect: NoSchedule
+      volumes:
+      - name: proc
+        hostPath:
+          path: /proc
+          type: Directory
+      - name: sys
+        hostPath:
+          path: /sys
+          type: Directory
+      - name: root
+        hostPath:
+          path: /
+          type: Directory

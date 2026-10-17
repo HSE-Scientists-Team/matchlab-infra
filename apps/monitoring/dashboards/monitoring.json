@@ -1,0 +1,418 @@
+{
+  "uid": "matchlab-monitoring",
+  "title": "MatchLab — Monitoring health",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": false,
+  "tags": [
+    "matchlab",
+    "gitops",
+    "KAN-60"
+  ],
+  "timezone": "browser",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "refresh": "30s",
+  "templating": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Scrape targets up",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "matchlab-prometheus"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "up",
+          "legendFormat": "{{job}} {{instance}}",
+          "instant": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 2,
+      "title": "Samples ingested / second",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "matchlab-prometheus"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "rate(prometheus_tsdb_head_samples_appended_total[$__rate_interval])",
+          "legendFormat": "{{service}}",
+          "instant": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Active time series",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "matchlab-prometheus"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "prometheus_tsdb_head_series",
+          "legendFormat": "{{service}}",
+          "instant": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 4,
+      "title": "TSDB blocks",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "matchlab-prometheus"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "prometheus_tsdb_storage_blocks_bytes",
+          "legendFormat": "{{service}}",
+          "instant": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 5,
+      "title": "WAL and head chunks",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "matchlab-prometheus"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 18
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "prometheus_tsdb_wal_storage_size_bytes + prometheus_tsdb_head_chunks_storage_size_bytes",
+          "legendFormat": "{{service}}",
+          "instant": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 6,
+      "title": "Total tracked TSDB bytes — budget 10 GiB",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "matchlab-prometheus"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 18
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "prometheus_tsdb_storage_blocks_bytes + prometheus_tsdb_wal_storage_size_bytes + prometheus_tsdb_head_chunks_storage_size_bytes",
+          "legendFormat": "{{service}}",
+          "instant": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 7,
+      "title": "Active alert rules (notifications not configured)",
+      "type": "table",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "matchlab-prometheus"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 27
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "ALERTS{alertstate=\"firing\"}",
+          "legendFormat": "",
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Value": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Series scraped per target",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "matchlab-prometheus"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 27
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "scrape_samples_post_metric_relabeling",
+          "legendFormat": "{{job}} {{instance}}",
+          "instant": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 9,
+      "title": "Prometheus RSS",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "matchlab-prometheus"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 36
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "process_resident_memory_bytes{job=\"prometheus\"}",
+          "legendFormat": "{{service}}",
+          "instant": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 10,
+      "title": "Targets exceeding scrape sample limit",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "matchlab-prometheus"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 36
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "rate(prometheus_target_scrapes_exceeded_sample_limit_total[$__rate_interval])",
+          "legendFormat": "{{service}}",
+          "instant": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    }
+  ]
+}

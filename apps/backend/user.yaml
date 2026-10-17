@@ -35,6 +35,8 @@ spec:
         - /etc/app/config.yaml
         ports:
         - containerPort: 8082
+        - name: metrics
+          containerPort: 9090
         volumeMounts:
         - name: config
           mountPath: /etc/app

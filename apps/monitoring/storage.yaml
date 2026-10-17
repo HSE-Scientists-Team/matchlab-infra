@@ -1,0 +1,35 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: matchlab-metrics-local
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+reclaimPolicy: Retain
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: matchlab-metrics
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec:
+  capacity:
+    storage: 10Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: matchlab-metrics-local
+  claimRef:
+    namespace: matchlab
+    name: data-prometheus-0
+  local:
+    path: /var/lib/matchlab-metrics
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: matchlab.io/metrics-disk
+          operator: In
+          values:
+          - ready

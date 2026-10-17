@@ -1,0 +1,106 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+spec:
+  selector:
+    app: prometheus
+  ports:
+  - name: http
+    port: 9090
+    targetPort: 9090
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: prometheus
+spec:
+  serviceName: prometheus
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+        app.kubernetes.io/part-of: monitoring
+    spec:
+      automountServiceAccountToken: true
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v3.15.0@sha256:efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e
+        args:
+        - --config.file=/etc/prometheus/prometheus.yml
+        - --storage.tsdb.path=/prometheus
+        - --storage.tsdb.retention.time=7d
+        - --storage.tsdb.retention.size=6GB
+        - --storage.tsdb.wal-compression
+        - --storage.tsdb.max-block-duration=2h
+        - --query.max-samples=1000000
+        - --query.max-concurrency=4
+        ports:
+        - name: http
+          containerPort: 9090
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 1Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: data
+          mountPath: /prometheus
+        - name: config
+          mountPath: /etc/prometheus
+          readOnly: true
+        readinessProbe:
+          httpGet:
+            path: /-/ready
+            port: 9090
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /-/healthy
+            port: 9090
+          periodSeconds: 20
+        startupProbe:
+          httpGet:
+            path: /-/ready
+            port: 9090
+          periodSeconds: 10
+          failureThreshold: 60
+      serviceAccountName: prometheus
+      volumes:
+      - name: config
+        configMap:
+          name: prometheus-config
+      nodeSelector:
+        matchlab.io/storage: 'true'
+        matchlab.io/metrics-disk: ready
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+      annotations:
+        kustomize.toolkit.fluxcd.io/prune: disabled
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: matchlab-metrics-local
+      resources:
+        requests:
+          storage: 10Gi
