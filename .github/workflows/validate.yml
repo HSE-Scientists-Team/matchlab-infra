@@ -15,6 +15,14 @@ jobs:
           version: v1.36.1
       - name: Собрать Kustomize базы
         run: |
-          for path in clusters/homelab apps/secrets apps/platform apps/backend apps/cert-manager apps/tls; do
+          for path in clusters/homelab apps/secrets apps/platform apps/backend apps/cert-manager apps/tls apps/monitoring; do
             kubectl kustomize "$path" > /dev/null
           done
+      - name: Проверить контракты мониторинга
+        run: python3 -m unittest discover -s scripts -p "test_*.py"
+      - name: Проверить конфигурацию Prometheus и alert rules
+        run: |
+          docker run --rm --entrypoint /bin/promtool -v "$PWD/apps/monitoring/config:/etc/prometheus:ro" prom/prometheus:v3.15.0 check config --syntax-only /etc/prometheus/prometheus.yml
+          docker run --rm --entrypoint /bin/promtool -v "$PWD/apps/monitoring/config:/etc/prometheus:ro" prom/prometheus:v3.15.0 check rules /etc/prometheus/alerts.yml
+      - name: Проверить shell scripts
+        run: bash -n scripts/prepare-metrics-volume.sh scripts/prepare-metrics-disk.sh

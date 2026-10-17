@@ -100,3 +100,24 @@ spec:
   wait: true
   dependsOn:
   - name: matchlab-cert-manager
+
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: matchlab-monitoring
+  namespace: flux-system
+spec:
+  interval: 1m
+  retryInterval: 30s
+  timeout: 10m
+  path: ./apps/monitoring
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  targetNamespace: matchlab
+  wait: true
+  dependsOn:
+  - name: matchlab-secrets
+  - name: matchlab-tls
