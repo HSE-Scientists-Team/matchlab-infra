@@ -40,6 +40,8 @@ spec:
         ports:
         - name: http
           containerPort: 8080
+        - name: telemetry
+          containerPort: 8081
         resources:
           requests:
             cpu: 20m
@@ -54,7 +56,14 @@ spec:
             - ALL
         readinessProbe:
           httpGet:
-            path: /healthz
-            port: 8080
+            path: /readyz
+            port: 8081
           periodSeconds: 10
+          timeoutSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /livez
+            port: 8080
+          periodSeconds: 20
+          timeoutSeconds: 5
       serviceAccountName: kube-state-metrics
