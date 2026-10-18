@@ -25,6 +25,9 @@ recommendation:
 admin:
   host: admin
   port: 8090
+chat:
+  host: chat
+  port: 8091
 cors:
   allowed_origins:
   - https://matchlab.space
