@@ -57,6 +57,7 @@ spec:
   targetNamespace: matchlab
   wait: true
   dependsOn:
+  - name: matchlab-secrets
   - name: matchlab-platform
   - name: matchlab-tls
   postBuild:

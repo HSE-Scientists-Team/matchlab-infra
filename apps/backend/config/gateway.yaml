@@ -22,6 +22,9 @@ search:
 recommendation:
   host: recommendation
   port: 8089
+admin:
+  host: admin
+  port: 8090
 cors:
   allowed_origins:
   - https://matchlab.space

@@ -1,0 +1,82 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: admin
+spec:
+  selector:
+    app: admin
+  ports:
+  - name: grpc
+    port: 8090
+    targetPort: 8090
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: admin
+  template:
+    metadata:
+      labels:
+        app: admin
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+      containers:
+      - name: admin
+        image: ${ADMIN_IMAGE}
+        args:
+        - -config
+        - /etc/app/config.yaml
+        ports:
+        - containerPort: 8090
+        - name: metrics
+          containerPort: 9090
+        volumeMounts:
+        - name: config
+          mountPath: /etc/app
+          readOnly: true
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            memory: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        readinessProbe:
+          grpc: &id001
+            port: 8090
+          periodSeconds: 5
+        livenessProbe:
+          grpc: *id001
+          periodSeconds: 10
+        startupProbe:
+          grpc: *id001
+          periodSeconds: 5
+          failureThreshold: 120
+        env:
+        - name: ADMIN_SIGNING_KEY
+          valueFrom:
+            secretKeyRef:
+              name: matchlab-admin-signing
+              key: seed
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: matchlab-postgres
+              key: password
+      volumes:
+      - name: config
+        configMap:
+          name: admin-config

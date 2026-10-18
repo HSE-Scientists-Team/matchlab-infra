@@ -7,12 +7,12 @@ Kubernetes-манифесты и GitOps MatchLab на Flux CD и Kustomize. Ко
 - `clusters/homelab/` — Flux, namespace приложения и версии образов в `images.yaml`.
 - `apps/secrets/` — Kubernetes Secret, зашифрованные SOPS/age; private key находится вне Git.
 - `apps/platform/` — PostgreSQL и SeaweedFS S3 с локальными PVC, Redis.
-- `apps/backend/` — девять backend-сервисов, Scalar, ConfigMap и публичный Ingress Gateway.
+- `apps/backend/` — десять backend-сервисов, Scalar, ConfigMap и публичный Ingress Gateway.
 - `.github/workflows/validate.yml` — проверка сборки Kustomize.
 
 ## GitOps
 
-Успешная ручная сборка в backend может создать PR с digest выбранных образов. После слияния Flux обновляет соответствующие Deployment. Секреты расшифровывает Flux; платформенные сервисы зависят от Secret, backend — от готовности платформы. Все девять backend-сервисов применяют общий SQL-набор перед открытием API под PostgreSQL advisory-блокировкой.
+Успешная ручная сборка в backend может создать PR с digest выбранных образов. После слияния Flux обновляет соответствующие Deployment. Секреты расшифровывает Flux; платформенные сервисы зависят от Secret, backend — от готовности платформы. Все десять backend-сервисов применяют общий SQL-набор перед открытием API под PostgreSQL advisory-блокировкой.
 
 Несекретная конфигурация монтируется из ConfigMap, пароли передаются через ссылки `secretKeyRef`. Scalar доступен через `/docs/` на origin Gateway. PostgreSQL закреплён за узлом с меткой `matchlab.io/storage=true`; Redis не имеет постоянного тома.
 
@@ -42,11 +42,11 @@ Support создаёт жалобы через внутренний gRPC Service
 
 ## Проекты, поиск и рекомендации
 
-Project (`project:8087`) хранит проекты, роли, участников, заявки и приглашения. Search (`search:8088`) обращается к User и Project; Recommendation (`recommendation:8089`) использует User и Search для случайных рекомендаций людей и проектов. Gateway получает внутренние адреса из ConfigMap; наружу доступен только HTTP API Gateway. Административные gRPC-методы не публикуются через Gateway.
+Project (`project:8087`) хранит проекты, роли, участников, заявки и приглашения. Search (`search:8088`) обращается к User и Project; Recommendation (`recommendation:8089`) использует User и Search для случайных рекомендаций людей и проектов. Gateway получает внутренние адреса из ConfigMap; наружу доступен только HTTP API Gateway. Привилегированные RPC владельцев данных доступны через административный фасад Admin.
 
 Все три сервиса получают пароль PostgreSQL через `matchlab-postgres`, в том числе для общих миграций. Project передаёт состав и состояние проектов в User через outbox. Одинаковый `PROJECT_SYNC_TOKEN` поступает в оба Deployment из SOPS Secret `matchlab-project-sync`, ключ `token`. При ротации нужно обновить Secret и перезапустить оба Deployment; outbox повторяет временно неудачные доставки.
 
-Релиз KAN-39 включает миграцию `00006`: обновляйте весь набор Go-образов вместе, поскольку старые бинарники не распознают новую историю миграций при перезапуске. Scalar также обновляется для новых HTTP-маршрутов. Версии всех десяти образов закреплены digest в `clusters/homelab/images.yaml`.
+Релиз KAN-39 включает миграцию `00006`: обновляйте весь набор Go-образов вместе, поскольку старые бинарники не распознают новую историю миграций при перезапуске. Scalar также обновляется для новых HTTP-маршрутов. Версии образов закреплены digest в `clusters/homelab/images.yaml`.
 
 ## Мониторинг (KAN-60)
 
@@ -66,3 +66,11 @@ Grafana доступна на `https://api.matchlab.space/grafana/` через �
 Начальные alert rules покрывают недоступность targets/Deployment, HTTP 5xx, OOM, нехватку RAM/диска ВМ и TSDB-бюджет. Их состояния видны в **Monitoring health**; отправка уведомлений не настроена (Alertmanager/contact points отсутствуют). Это дополнение к Zabbix. Новые сервисы добавляйте в scrape allowlist, выставляйте именованный container port `metrics` и настройки `metrics.address`; новые бинарники необходимо собрать до появления метрик.
 
 Grafana запрашивает 256Mi RAM, лимит контейнера — 1Gi. `GOMEMLIMIT=768MiB` задаёт мягкий бюджет управляемой Go-памяти с запасом для остальной памяти процесса. Это не жёсткий предел RSS и не замена контейнерному лимиту. Проверять потребление следует при открытии и обновлении дашбордов. Alert `ContainerMemoryNearLimit` показывает превышение 85% лимита в течение пяти минут; `ContainerOOMKilled` учитывает новые рестарты за последние десять минут, а не бессрочно сохранённую причину завершения.
+
+## Admin (KAN-35)
+
+Admin (admin:8090) предоставляет служебную авторизацию и административные HTTP-операции через Gateway под /api/v1/admin. Служебные аккаунты и сеансы отделены от публичных пользователей. User, Support и Project проверяют короткоживущую подпись Admin; gRPC остаётся внутренним. Первый администратор создаётся один раз бинарником /admin-bootstrap из образа Admin. Права, ручки и bootstrap описаны в [документации backend](https://github.com/HSE-Scientists-Team/matchlab-backend/blob/master/cmd/admin/README.md). Начального пароля в Git нет.
+
+SOPS Secret matchlab-admin-signing содержит seed, доступный только Admin через ADMIN_SIGNING_KEY. Отдельный SOPS Secret matchlab-admin-verification содержит public-key, который получают User, Support и Project через ADMIN_PUBLIC_KEY. Используются существующий age recipient и дешифрование Flux. Ротация требует согласованного обновления Secret и перезапуска четырёх потребителей. Известный тестовый ключ Compose в рабочем окружении не используется. Пароль bootstrap передаётся оператором временно и не добавляется в Secret ключей подписи.
+
+Миграция 00007 общая для десяти Go-сервисов. Выпускайте все одиннадцать образов вместе, включая Scalar, с digest в clusters/homelab/images.yaml. Backend явно зависит от reconciliation секретов. Prometheus находит Admin по именованному порту metrics и списку разрешённых сервисов; существующие дашборды сервисов и версий включают его автоматически.

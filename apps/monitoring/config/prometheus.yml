@@ -25,7 +25,7 @@ scrape_configs:
     regex: metrics
   - source_labels: [__meta_kubernetes_pod_label_app]
     action: keep
-    regex: gateway|auth|user|mail|media|support|project|search|recommendation
+    regex: gateway|auth|user|mail|media|support|project|search|recommendation|admin
   - source_labels: [__meta_kubernetes_pod_label_app]
     target_label: service
   - source_labels: [__meta_kubernetes_pod_name]
