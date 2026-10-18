@@ -21,6 +21,13 @@ spec:
             name: seaweedfs
             port:
               number: 8333
+      - path: /admin
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend
+            port:
+              number: 8080
       - path: /docs
         pathType: Prefix
         backend:

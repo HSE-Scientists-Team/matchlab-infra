@@ -7,7 +7,7 @@ Kubernetes-манифесты и GitOps MatchLab на Flux CD и Kustomize. Ко
 - `clusters/homelab/` — Flux, namespace приложения и версии образов в `images.yaml`.
 - `apps/secrets/` — Kubernetes Secret, зашифрованные SOPS/age; private key находится вне Git.
 - `apps/platform/` — PostgreSQL и SeaweedFS S3 с локальными PVC, Redis.
-- `apps/backend/` — десять backend-сервисов, Scalar, ConfigMap и публичный Ingress Gateway.
+- `apps/backend/` — десять backend-сервисов, frontend, Scalar, ConfigMap и публичный Ingress Gateway.
 - `.github/workflows/validate.yml` — проверка сборки Kustomize.
 
 ## GitOps
@@ -73,4 +73,14 @@ Admin (admin:8090) предоставляет служебную авториз�
 
 SOPS Secret matchlab-admin-signing содержит seed, доступный только Admin через ADMIN_SIGNING_KEY. Отдельный SOPS Secret matchlab-admin-verification содержит public-key, который получают User, Support и Project через ADMIN_PUBLIC_KEY. Используются существующий age recipient и дешифрование Flux. Ротация требует согласованного обновления Secret и перезапуска четырёх потребителей. Известный тестовый ключ Compose в рабочем окружении не используется. Пароль bootstrap передаётся оператором временно и не добавляется в Secret ключей подписи.
 
-Миграция 00007 общая для десяти Go-сервисов. Выпускайте все одиннадцать образов вместе, включая Scalar, с digest в clusters/homelab/images.yaml. Backend явно зависит от reconciliation секретов. Prometheus находит Admin по именованному порту metrics и списку разрешённых сервисов; существующие дашборды сервисов и версий включают его автоматически.
+Миграция 00007 общая для десяти Go-сервисов. Выпускайте все одиннадцать образов backend и Scalar вместе, с digest в clusters/homelab/images.yaml. Backend явно зависит от reconciliation секретов. Prometheus находит Admin по именованному порту metrics и списку разрешённых сервисов; существующие дашборды сервисов и версий включают его автоматически.
+
+## Frontend (KAN-61)
+
+React-админка доступна по https://api.matchlab.space/admin/. Ingress направляет префикс /admin в Service frontend:8080 без переписывания пути; /api остаётся на Gateway, /docs — на Scalar. Используется существующий TLS-сертификат. Прямые ссылки на карточки обрабатывает SPA fallback внутри Nginx.
+
+Deployment использует приватный образ из matchlab-frontend, закреплённый FRONTEND_IMAGE в clusters/homelab/images.yaml, и существующий imagePullSecret ghcr-pull. Nginx работает от UID 101 с read-only root filesystem, отдельными emptyDir для /tmp и /etc/nginx/conf.d, без API-токена Kubernetes. Probe /healthz проверяет статический сервер. Frontend не выполняет SQL-миграции и не получает паролей или ключей Admin.
+
+Для следующего релиза запустите Actions → Build frontend image в matchlab-frontend на master, оставив propose_deploy включённым. После проверок workflow публикует образ и создаёт infra PR только с FRONTEND_IMAGE. После его слияния Flux выполняет rollout. Пересобирать backend при изменениях frontend не требуется. Первичная настройка INFRA_REPO_TOKEN описана в README frontend.
+
+CPU, RAM, рестарты и image digest frontend доступны в существующем дашборде Services and releases через kube-state-metrics/cAdvisor. Сам Nginx не экспортирует Go-метрики и в scrape allowlist Go-сервисов не добавляется.
