@@ -10,6 +10,7 @@ resources:
 - project.yaml
 - search.yaml
 - recommendation.yaml
+- admin.yaml
 - ingress.yaml
 - api-docs.yaml
 configMapGenerator:
@@ -40,6 +41,9 @@ configMapGenerator:
 - name: recommendation-config
   files:
   - config.yaml=config/recommendation.yaml
+- name: admin-config
+  files:
+  - config.yaml=config/admin.yaml
 patches:
 - target:
     kind: Deployment

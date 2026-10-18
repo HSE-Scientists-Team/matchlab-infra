@@ -65,6 +65,11 @@ spec:
           periodSeconds: 5
           failureThreshold: 120
         env:
+        - name: ADMIN_PUBLIC_KEY
+          valueFrom:
+            secretKeyRef:
+              name: matchlab-admin-verification
+              key: public-key
         - name: POSTGRES_PASSWORD
           valueFrom:
             secretKeyRef:
