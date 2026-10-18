@@ -13,6 +13,7 @@ resources:
 - admin.yaml
 - ingress.yaml
 - api-docs.yaml
+- frontend.yaml
 configMapGenerator:
 - name: gateway-config
   files:

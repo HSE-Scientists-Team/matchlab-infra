@@ -15,3 +15,4 @@ data:
   RECOMMENDATION_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/recommendation@sha256:c2a0c93412c367c874209df811929ceb16f5696c01cfcc29368bbbcae608a828
   SEARCH_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/search@sha256:49cfbe8acd317a4d3e2804895fb4427237b3b577698b1619763fc5448a678f6d
   ADMIN_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/admin@sha256:e12701ac5d7c49db6968cfa0a2f6c1ee8e7d0b1bd030398e49d995a64398ff40
+  FRONTEND_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/frontend@sha256:3e40b9e8f4929ccd0d3e03ed1eedca3e85994143642670638526e95b0c4baf78
