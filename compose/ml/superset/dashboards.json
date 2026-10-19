@@ -1,0 +1,41 @@
+[
+  {
+    "slug": "matchlab-platform", "title": "MatchLab · Platform overview",
+    "description": "Latest completed snapshot, not live telemetry. Active means active and email-confirmed, not DAU. Registration history excludes deleted accounts. Always inspect data_source and as_of.",
+    "charts": [
+      {"key": "total-users", "title": "Users (non-deleted accounts)", "view": "overview", "metric": "users"},
+      {"key": "total-projects", "title": "Projects (all statuses)", "view": "overview", "metric": "projects"},
+      {"key": "open-places", "title": "Open places in visible recruiting projects", "view": "overview", "metric": "open_places"},
+      {"key": "source", "title": "Snapshot source and freshness", "view": "overview", "columns": ["as_of", "data_source", "users", "active_users", "projects", "recruiting_projects", "open_places"]},
+      {"key": "project-status", "title": "Project lifecycle", "view": "project_status", "columns": ["status", "projects", "data_source"]},
+      {"key": "registrations", "title": "Registrations by day (remaining accounts)", "view": "registrations", "columns": ["day", "registrations", "data_source"]}
+    ]
+  },
+  {
+    "slug": "matchlab-people", "title": "MatchLab · People and skills",
+    "description": "Skill groups are inferred by a small published keyword taxonomy, not verified professions or employment. Unknown is a valid segment. Supply counts confirmed active people open to collaboration.",
+    "charts": [
+      {"key": "segments", "title": "Inferred skill groups (not jobs)", "view": "user_segments", "columns": ["segment", "users", "as_of", "data_source"]},
+      {"key": "universities", "title": "Universities (self-reported)", "view": "universities", "columns": ["university", "users", "data_source"]},
+      {"key": "supply", "title": "Skills available for collaboration", "view": "skill_supply", "columns": ["skill", "users", "data_source"]}
+    ]
+  },
+  {
+    "slug": "matchlab-teams", "title": "MatchLab · Projects and recruitment",
+    "description": "Role demand and skill demand can overlap: one place may require several skills. Two-role share is a CURRENT snapshot proxy across all projects, not the historical pilot success metric from the SRS. A zero denominator is unknown, not 0% success.",
+    "charts": [
+      {"key": "types", "title": "Project types", "view": "project_types", "columns": ["type", "projects", "data_source"]},
+      {"key": "roles", "title": "Required roles and capacity", "view": "role_demand", "columns": ["role", "openings", "open_places", "occupied_places", "data_source"]},
+      {"key": "demand", "title": "Required skills in open places", "view": "skill_demand", "columns": ["skill", "open_places", "data_source"]},
+      {"key": "recruitment", "title": "Applications and invitations (current statuses)", "view": "recruitment", "columns": ["type", "status", "requests", "data_source"]},
+      {"key": "formation", "title": "Current two-filled-role proxy", "view": "team_formation", "columns": ["projects", "projects_two_filled_roles", "current_two_role_share", "data_source"]}
+    ]
+  },
+  {
+    "slug": "matchlab-models", "title": "MatchLab · Recommendation runs",
+    "description": "Baseline and hybrid side by side. Recall/NDCG use a retrospective next-application proxy with current profiles and current project visibility; they are not unbiased online metrics. No eligible holdout means NULL. Synthetic results do not prove real quality. API latency, impressions and CTR are not collected yet.",
+    "charts": [
+      {"key": "models", "title": "Run quality, coverage and fallback", "view": "recommendation_quality", "columns": ["run_id", "model", "extracted_at", "state", "data_source", "generated_users", "recommendations", "fallback_fraction", "duration_seconds", "evaluation_users", "recall_at_10", "ndcg_at_10"]}
+    ]
+  }
+]

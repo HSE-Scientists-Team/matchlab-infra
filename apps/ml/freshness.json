@@ -1,0 +1,100 @@
+{
+  "apiVersion": "batch/v1",
+  "kind": "CronJob",
+  "metadata": {
+    "name": "ml-freshness"
+  },
+  "spec": {
+    "schedule": "17 * * * *",
+    "timeZone": "Etc/UTC",
+    "concurrencyPolicy": "Forbid",
+    "startingDeadlineSeconds": 600,
+    "successfulJobsHistoryLimit": 1,
+    "failedJobsHistoryLimit": 2,
+    "jobTemplate": {
+      "spec": {
+        "backoffLimit": 1,
+        "activeDeadlineSeconds": 120,
+        "ttlSecondsAfterFinished": 7200,
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "ml-freshness",
+              "component": "ml"
+            }
+          },
+          "spec": {
+            "automountServiceAccountToken": false,
+            "securityContext": {
+              "runAsNonRoot": true,
+              "runAsUser": 50000,
+              "runAsGroup": 0,
+              "fsGroup": 0,
+              "seccompProfile": {
+                "type": "RuntimeDefault"
+              }
+            },
+            "imagePullSecrets": [
+              {
+                "name": "ghcr-pull"
+              }
+            ],
+            "containers": [
+              {
+                "name": "freshness",
+                "image": "${ML_IMAGE}",
+                "env": [
+                  {
+                    "name": "ANALYTICS_DATABASE_URL",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "matchlab-ml-runtime",
+                        "key": "analytics-url"
+                      }
+                    }
+                  },
+                  {
+                    "name": "RECOMMENDATION_REDIS_URL",
+                    "valueFrom": {
+                      "secretKeyRef": {
+                        "name": "matchlab-ml-runtime",
+                        "key": "redis-url"
+                      }
+                    }
+                  }
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "50m",
+                    "memory": "128Mi"
+                  },
+                  "limits": {
+                    "cpu": "500m",
+                    "memory": "256Mi"
+                  }
+                },
+                "securityContext": {
+                  "allowPrivilegeEscalation": false,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  }
+                },
+                "command": [
+                  "python",
+                  "-m",
+                  "matchlab_ml.maintenance"
+                ],
+                "args": [
+                  "--check-freshness"
+                ]
+              }
+            ],
+            "restartPolicy": "Never"
+          }
+        }
+      }
+    }
+  }
+}

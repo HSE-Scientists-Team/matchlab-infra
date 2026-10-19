@@ -1,0 +1,207 @@
+# Merge with the backend compose.yaml using stack.py (paths are resolved there).
+x-ml-environment: &ml-environment
+  SOURCE_DATABASE_URL: postgresql://ml_reader:${ML_SOURCE_PASSWORD:?run stack.py init}@postgres:5432/matchlab
+  ANALYTICS_DATABASE_URL: postgresql://analytics_writer:${ML_ANALYTICS_PASSWORD:?run stack.py init}@ml-db:5432/analytics
+  RECOMMENDATION_REDIS_URL: redis://:${ML_REDIS_PASSWORD:?run stack.py init}@recommendation-redis:6379/0
+  MLFLOW_TRACKING_URI: http://mlflow:5000
+  ML_ARTIFACT_DIR: /artifacts
+  ML_MODEL: ${ML_MODEL:-baseline}
+  ML_CODE_VERSION: ${ML_CODE_VERSION:-working-tree}
+  ML_CACHE_ITEMS: '100'
+  ML_CACHE_TTL_SECONDS: '86400'
+  ML_SOURCE: postgres
+  GIT_PYTHON_REFRESH: quiet
+
+services:
+  recommendation:
+    environment:
+      RECOMMENDATION_REDIS_PASSWORD: ${ML_REDIS_PASSWORD:?run stack.py init}
+    depends_on:
+      recommendation-redis:
+        condition: service_healthy
+
+  recommendation-redis:
+    image: redis:7.4-alpine
+    command: [redis-server, --requirepass, '${ML_REDIS_PASSWORD:?run stack.py init}', --maxmemory, 256mb, --maxmemory-policy, noeviction]
+    environment:
+      REDISCLI_AUTH: ${ML_REDIS_PASSWORD:?run stack.py init}
+    # Separate instance: recommendations must never evict authentication sessions.
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  ml-db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ml_admin
+      POSTGRES_PASSWORD: ${ML_DB_ADMIN_PASSWORD:?run stack.py init}
+      POSTGRES_DB: postgres
+    volumes:
+      - ml-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD, pg_isready, -U, ml_admin, -d, postgres]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  ml-init:
+    image: matchlab-ml:local
+    build:
+      context: ${ML_BACKEND_DIR:?run stack.py init}
+      dockerfile: ml/Dockerfile
+    user: '0:0'
+    entrypoint: [python, /bootstrap/init_databases.py]
+    environment:
+      ML_PREPARE_ARTIFACTS: 'true'
+      SOURCE_ADMIN_URL: postgresql://matchlab:${POSTGRES_PASSWORD:?run stack.py init}@postgres:5432/matchlab
+      ML_ADMIN_URL: postgresql://ml_admin:${ML_DB_ADMIN_PASSWORD:?run stack.py init}@ml-db:5432/postgres
+      ML_SOURCE_PASSWORD: ${ML_SOURCE_PASSWORD:?run stack.py init}
+      ML_ANALYTICS_PASSWORD: ${ML_ANALYTICS_PASSWORD:?run stack.py init}
+      ML_BI_PASSWORD: ${ML_BI_PASSWORD:?run stack.py init}
+      ML_AIRFLOW_PASSWORD: ${ML_AIRFLOW_PASSWORD:?run stack.py init}
+      ML_SUPERSET_DB_PASSWORD: ${ML_SUPERSET_DB_PASSWORD:?run stack.py init}
+    volumes:
+      - ${ML_STACK_DIR:?run stack.py init}/init_databases.py:/bootstrap/init_databases.py:ro
+      - ml-artifacts:/artifacts
+    depends_on:
+      ml-db:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      user:
+        condition: service_started
+      project:
+        condition: service_started
+    restart: 'no'
+
+  mlflow:
+    image: matchlab-mlflow:local
+    build:
+      context: ${ML_BACKEND_DIR:?run stack.py init}
+      dockerfile: ml/Dockerfile.mlflow
+    entrypoint: [/bin/sh, -ec]
+    command:
+      - >-
+        mlflow db upgrade sqlite:////mlflow/mlflow.db &&
+        exec mlflow server --host 0.0.0.0 --port 5000 --workers 1
+        --backend-store-uri sqlite:////mlflow/mlflow.db
+        --artifacts-destination /mlflow/artifacts --serve-artifacts
+        --allowed-hosts mlflow:5000,localhost:5000,localhost:5001,127.0.0.1:5001
+        --cors-allowed-origins http://localhost:5001,http://127.0.0.1:5001
+    environment:
+      MLFLOW_ENABLE_TELEMETRY: 'false'
+    ports:
+      - 127.0.0.1:5001:5000
+    volumes:
+      - mlflow-data:/mlflow
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  airflow:
+    build:
+      context: ${ML_BACKEND_DIR:?run stack.py init}
+      dockerfile: ml/Dockerfile.airflow
+    command: [python, /opt/airflow/bootstrap/start_airflow.py]
+    user: '50000:0'
+    environment:
+      <<: *ml-environment
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:${ML_AIRFLOW_PASSWORD:?run stack.py init}@ml-db:5432/airflow
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__PARALLELISM: '1'
+      AIRFLOW__DAG_PROCESSOR__PARSING_PROCESSES: '1'
+      AIRFLOW__DAG_PROCESSOR__MIN_FILE_PROCESS_INTERVAL: '120'
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+      AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS: analyst:admin
+      AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_PASSWORDS_FILE: /opt/airflow/simple_auth_manager_passwords.json
+      ML_AIRFLOW_ADMIN_PASSWORD: ${ML_AIRFLOW_ADMIN_PASSWORD:?run stack.py init}
+      AIRFLOW__CORE__FERNET_KEY: ${ML_AIRFLOW_FERNET_KEY:?run stack.py init}
+      AIRFLOW__API_AUTH__JWT_SECRET: ${ML_AIRFLOW_JWT_SECRET:?run stack.py init}
+      AIRFLOW__API__BASE_URL: http://localhost:8086
+      AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://localhost:8080/execution/
+      AIRFLOW__LOGGING__REMOTE_LOGGING: 'false'
+    ports:
+      - 127.0.0.1:8086:8080
+    volumes:
+      - airflow-logs:/opt/airflow/logs
+      - ml-artifacts:/artifacts
+    depends_on:
+      ml-init:
+        condition: service_completed_successfully
+      mlflow:
+        condition: service_healthy
+      recommendation-redis:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, python, -c, "import json, urllib.request; h=json.load(urllib.request.urlopen('http://localhost:8080/api/v2/monitor/health',timeout=3)); assert all(h.get(k,{}).get('status')=='healthy' for k in ('metadatabase','scheduler','dag_processor'))"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 120s
+
+  ml-batch:
+    profiles: [jobs]
+    image: matchlab-ml:local
+    build:
+      context: ${ML_BACKEND_DIR:?run stack.py init}
+      dockerfile: ml/Dockerfile
+    user: '50000:0'
+    environment: *ml-environment
+    volumes:
+      - ml-artifacts:/artifacts
+    depends_on:
+      ml-init:
+        condition: service_completed_successfully
+      mlflow:
+        condition: service_healthy
+      recommendation-redis:
+        condition: service_healthy
+
+  superset-init:
+    image: matchlab-superset:local
+    build:
+      context: ${ML_STACK_DIR:?run stack.py init}/superset
+    entrypoint: [python, /app/bootstrap/bootstrap.py]
+    environment:
+      <<: &superset-environment
+        SUPERSET_CONFIG_PATH: /app/bootstrap/superset_config.py
+        SUPERSET_SECRET_KEY: ${ML_SUPERSET_SECRET_KEY:?run stack.py init}
+        SUPERSET_METADATA_URL: postgresql+psycopg2://superset:${ML_SUPERSET_DB_PASSWORD:?run stack.py init}@ml-db:5432/superset
+        SUPERSET_ANALYTICS_URL: postgresql+psycopg2://analytics_reader:${ML_BI_PASSWORD:?run stack.py init}@ml-db:5432/analytics
+      SUPERSET_ADMIN_PASSWORD: ${ML_SUPERSET_ADMIN_PASSWORD:?run stack.py init}
+    depends_on:
+      ml-init:
+        condition: service_completed_successfully
+    restart: 'no'
+
+  superset:
+    image: matchlab-superset:local
+    build:
+      context: ${ML_STACK_DIR:?run stack.py init}/superset
+    environment: *superset-environment
+    command: [gunicorn, --bind, '0.0.0.0:8088', --workers, '1', --timeout, '120', 'superset.app:create_app()']
+    ports:
+      - 127.0.0.1:8089:8088
+    depends_on:
+      superset-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: [CMD, curl, -fsS, 'http://localhost:8088/health']
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+configs:
+  recommendation-compose-config:
+    file: ${ML_STACK_DIR:?run stack.py init}/recommendation.yaml
+
+volumes:
+  ml-db-data:
+  mlflow-data:
+  airflow-logs:
+  ml-artifacts:

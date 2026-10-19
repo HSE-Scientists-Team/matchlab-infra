@@ -1,0 +1,102 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "name": "recommendation-redis"
+  },
+  "spec": {
+    "replicas": 1,
+    "strategy": {
+      "type": "Recreate"
+    },
+    "selector": {
+      "matchLabels": {
+        "app": "recommendation-redis"
+      }
+    },
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "recommendation-redis",
+          "component": "ml"
+        }
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "securityContext": {
+          "runAsNonRoot": true,
+          "runAsUser": 999,
+          "runAsGroup": 0,
+          "fsGroup": 0,
+          "seccompProfile": {
+            "type": "RuntimeDefault"
+          }
+        },
+        "imagePullSecrets": [
+          {
+            "name": "ghcr-pull"
+          }
+        ],
+        "containers": [
+          {
+            "name": "redis",
+            "image": "redis@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499",
+            "env": [
+              {
+                "name": "REDIS_PASSWORD",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "matchlab-recommendation-redis",
+                    "key": "password"
+                  }
+                }
+              }
+            ],
+            "volumeMounts": [],
+            "resources": {
+              "requests": {
+                "cpu": "100m",
+                "memory": "256Mi"
+              },
+              "limits": {
+                "cpu": "2",
+                "memory": "2Gi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              }
+            },
+            "command": [
+              "sh",
+              "-ec"
+            ],
+            "args": [
+              "exec redis-server --requirepass \"$REDIS_PASSWORD\" --maxmemory 256mb --maxmemory-policy noeviction --save \"\" --appendonly no"
+            ],
+            "ports": [
+              {
+                "containerPort": 6379
+              }
+            ],
+            "readinessProbe": {
+              "exec": {
+                "command": [
+                  "sh",
+                  "-ec",
+                  "REDISCLI_AUTH=\"$REDIS_PASSWORD\" redis-cli ping"
+                ]
+              },
+              "periodSeconds": 5
+            }
+          }
+        ],
+        "volumes": []
+      }
+    }
+  }
+}

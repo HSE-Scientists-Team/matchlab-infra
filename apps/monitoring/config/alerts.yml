@@ -68,3 +68,14 @@ groups:
       severity: warning
     annotations:
       summary: 'Container working set above 85% of memory limit: {{ $labels.pod }} / {{ $labels.container }}'
+
+- name: matchlab-ml
+  rules:
+  - alert: RecommendationFreshnessCheckFailed
+    expr: kube_job_failed{namespace="matchlab",job_name=~"ml-freshness-.*",condition="true"} > 0
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: Recommendation source or cache freshness check failed
+      description: Inspect the private ml-freshness Job logs; do not copy DSNs or credentials into alerts.

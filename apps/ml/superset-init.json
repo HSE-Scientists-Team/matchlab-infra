@@ -1,0 +1,112 @@
+{
+  "apiVersion": "batch/v1",
+  "kind": "Job",
+  "metadata": {
+    "name": "superset-provision-v1",
+    "annotations": {
+      "kustomize.toolkit.fluxcd.io/force": "enabled"
+    }
+  },
+  "spec": {
+    "backoffLimit": 2,
+    "activeDeadlineSeconds": 900,
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "superset-provision-v1",
+          "component": "ml"
+        }
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "securityContext": {
+          "runAsNonRoot": true,
+          "runAsUser": 1000,
+          "runAsGroup": 0,
+          "fsGroup": 0,
+          "seccompProfile": {
+            "type": "RuntimeDefault"
+          }
+        },
+        "imagePullSecrets": [
+          {
+            "name": "ghcr-pull"
+          }
+        ],
+        "containers": [
+          {
+            "name": "bootstrap",
+            "image": "${SUPERSET_IMAGE}",
+            "env": [
+              {
+                "name": "SUPERSET_CONFIG_PATH",
+                "value": "/app/bootstrap/superset_config.py"
+              },
+              {
+                "name": "SUPERSET_SECRET_KEY",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "matchlab-superset",
+                    "key": "secret-key"
+                  }
+                }
+              },
+              {
+                "name": "SUPERSET_METADATA_URL",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "matchlab-superset",
+                    "key": "metadata-url"
+                  }
+                }
+              },
+              {
+                "name": "SUPERSET_ANALYTICS_URL",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "matchlab-superset",
+                    "key": "analytics-url"
+                  }
+                }
+              },
+              {
+                "name": "SUPERSET_ADMIN_PASSWORD",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "matchlab-superset",
+                    "key": "admin-password"
+                  }
+                }
+              }
+            ],
+            "volumeMounts": [],
+            "resources": {
+              "requests": {
+                "cpu": "100m",
+                "memory": "256Mi"
+              },
+              "limits": {
+                "cpu": "2",
+                "memory": "2Gi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              }
+            },
+            "command": [
+              "python",
+              "/app/bootstrap/bootstrap.py"
+            ]
+          }
+        ],
+        "volumes": [],
+        "restartPolicy": "Never"
+      }
+    }
+  }
+}
