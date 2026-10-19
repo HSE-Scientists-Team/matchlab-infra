@@ -8,7 +8,7 @@ data:
   AUTH_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/auth@sha256:ad3753c7b162ea9647647d73f1c614860e56d72e372624456180b32580b16127
   USER_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/user@sha256:e04d4e9c76c7791d3bfbd872682e819f82ec5b7cf63a8780c6b710d1db0fa3d0
   MAIL_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/mail@sha256:14ec9936b9895c4486c981e2ec3b9b5e496a4a8d67151c63792c840a981b6e0c
-  API_DOCS_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/api-docs@sha256:02bef3974b8befa8e12b72f01c5fb393c73b5ac9bf235f777ee634a287297a9a
+  API_DOCS_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/api-docs@sha256:c6fc797e004681ea7791dd00e46b2b622fdfaa3449728da69d6cd4264c9bb36e
   MEDIA_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/media@sha256:44a7a1d3d69f4ef074478c1dccf6c4a534dda453c66026e9a14d11fcc487b14f
   SUPPORT_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/support@sha256:bdb3a6a694143b33f7989ba368aca04b4b41b6ced419e4dab9a07c8592b892b1
   PROJECT_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/project@sha256:aca33d3316f2b66d9ba7662bd2c75d2cd1193322b6d926b69809531923a789df
