@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: recommendation
+spec:
+  template:
+    spec:
+      containers:
+      - name: recommendation
+        env:
+        - name: RECOMMENDATION_REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: matchlab-recommendation-redis
+              key: password
+      volumes:
+      - name: config
+        configMap:
+          name: recommendation-ml-config
