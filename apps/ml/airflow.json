@@ -1,0 +1,245 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "name": "airflow"
+  },
+  "spec": {
+    "replicas": 1,
+    "strategy": {
+      "type": "Recreate"
+    },
+    "selector": {
+      "matchLabels": {
+        "app": "airflow"
+      }
+    },
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "airflow",
+          "component": "ml"
+        }
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "securityContext": {
+          "runAsNonRoot": true,
+          "runAsUser": 50000,
+          "runAsGroup": 0,
+          "fsGroup": 0,
+          "seccompProfile": {
+            "type": "RuntimeDefault"
+          }
+        },
+        "imagePullSecrets": [
+          {
+            "name": "ghcr-pull"
+          }
+        ],
+        "containers": [
+          {
+            "name": "airflow",
+            "image": "${AIRFLOW_IMAGE}",
+            "env": [
+              {
+                "name": "SOURCE_DATABASE_URL",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "matchlab-ml-runtime",
+                    "key": "source-url"
+                  }
+                }
+              },
+              {
+                "name": "ANALYTICS_DATABASE_URL",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "matchlab-ml-runtime",
+                    "key": "analytics-url"
+                  }
+                }
+              },
+              {
+                "name": "RECOMMENDATION_REDIS_URL",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "matchlab-ml-runtime",
+                    "key": "redis-url"
+                  }
+                }
+              },
+              {
+                "name": "MLFLOW_TRACKING_URI",
+                "value": "http://mlflow:5000"
+              },
+              {
+                "name": "ML_ARTIFACT_DIR",
+                "value": "/artifacts"
+              },
+              {
+                "name": "ML_MODEL",
+                "value": "baseline"
+              },
+              {
+                "name": "ML_SOURCE",
+                "value": "postgres"
+              },
+              {
+                "name": "ML_CODE_VERSION",
+                "value": "${ML_CODE_VERSION}"
+              },
+              {
+                "name": "ML_CACHE_ITEMS",
+                "value": "100"
+              },
+              {
+                "name": "ML_CACHE_TTL_SECONDS",
+                "value": "86400"
+              },
+              {
+                "name": "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "matchlab-airflow",
+                    "key": "metadata-url"
+                  }
+                }
+              },
+              {
+                "name": "AIRFLOW__CORE__FERNET_KEY",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "matchlab-airflow",
+                    "key": "fernet-key"
+                  }
+                }
+              },
+              {
+                "name": "AIRFLOW__API_AUTH__JWT_SECRET",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "matchlab-airflow",
+                    "key": "jwt-secret"
+                  }
+                }
+              },
+              {
+                "name": "ML_AIRFLOW_ADMIN_PASSWORD",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "matchlab-airflow",
+                    "key": "admin-password"
+                  }
+                }
+              },
+              {
+                "name": "AIRFLOW__CORE__EXECUTOR",
+                "value": "LocalExecutor"
+              },
+              {
+                "name": "AIRFLOW__CORE__PARALLELISM",
+                "value": "1"
+              },
+              {
+                "name": "AIRFLOW__CORE__LOAD_EXAMPLES",
+                "value": "false"
+              },
+              {
+                "name": "AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION",
+                "value": "true"
+              },
+              {
+                "name": "AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS",
+                "value": "analyst:admin"
+              },
+              {
+                "name": "AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_PASSWORDS_FILE",
+                "value": "/opt/airflow/simple_auth_manager_passwords.json"
+              },
+              {
+                "name": "AIRFLOW__API__BASE_URL",
+                "value": "http://localhost:8086"
+              },
+              {
+                "name": "AIRFLOW__CORE__EXECUTION_API_SERVER_URL",
+                "value": "http://localhost:8080/execution/"
+              },
+              {
+                "name": "GIT_PYTHON_REFRESH",
+                "value": "quiet"
+              },
+              {
+                "name": "AIRFLOW__DAG_PROCESSOR__PARSING_PROCESSES",
+                "value": "1"
+              },
+              {
+                "name": "AIRFLOW__DAG_PROCESSOR__MIN_FILE_PROCESS_INTERVAL",
+                "value": "120"
+              }
+            ],
+            "volumeMounts": [
+              {
+                "name": "artifacts",
+                "mountPath": "/artifacts"
+              },
+              {
+                "name": "logs",
+                "mountPath": "/opt/airflow/logs"
+              }
+            ],
+            "resources": {
+              "requests": {
+                "cpu": "100m",
+                "memory": "1Gi"
+              },
+              "limits": {
+                "cpu": "2",
+                "memory": "4Gi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              }
+            },
+            "command": [
+              "python",
+              "/opt/airflow/bootstrap/start_airflow.py"
+            ],
+            "ports": [
+              {
+                "containerPort": 8080
+              }
+            ],
+            "readinessProbe": {
+              "httpGet": {
+                "path": "/api/v2/monitor/health",
+                "port": 8080
+              },
+              "initialDelaySeconds": 60,
+              "periodSeconds": 15
+            }
+          }
+        ],
+        "volumes": [
+          {
+            "name": "artifacts",
+            "persistentVolumeClaim": {
+              "claimName": "ml-artifacts"
+            }
+          },
+          {
+            "name": "logs",
+            "persistentVolumeClaim": {
+              "claimName": "airflow-logs"
+            }
+          }
+        ]
+      }
+    }
+  }
+}
