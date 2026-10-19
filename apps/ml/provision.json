@@ -1,0 +1,133 @@
+{
+  "apiVersion": "batch/v1",
+  "kind": "Job",
+  "metadata": {
+    "name": "ml-provision-v1"
+  },
+  "spec": {
+    "backoffLimit": 2,
+    "activeDeadlineSeconds": 900,
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "ml-provision-v1",
+          "component": "ml"
+        }
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "securityContext": {
+          "runAsNonRoot": true,
+          "runAsUser": 50000,
+          "runAsGroup": 0,
+          "fsGroup": 0,
+          "seccompProfile": {
+            "type": "RuntimeDefault"
+          }
+        },
+        "imagePullSecrets": [
+          {
+            "name": "ghcr-pull"
+          }
+        ],
+        "containers": [
+          {
+            "name": "provision",
+            "image": "${ML_IMAGE}",
+            "env": [
+              {
+                "name": "SOURCE_ADMIN_PASSWORD",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "matchlab-postgres",
+                    "key": "password"
+                  }
+                }
+              },
+              {
+                "name": "ML_ADMIN_URL",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "matchlab-ml-db-admin",
+                    "key": "url"
+                  }
+                }
+              },
+              {
+                "name": "ML_SOURCE_PASSWORD",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "matchlab-ml-provision",
+                    "key": "source-password"
+                  }
+                }
+              },
+              {
+                "name": "ML_ANALYTICS_PASSWORD",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "matchlab-ml-provision",
+                    "key": "analytics-password"
+                  }
+                }
+              },
+              {
+                "name": "ML_BI_PASSWORD",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "matchlab-ml-provision",
+                    "key": "bi-password"
+                  }
+                }
+              },
+              {
+                "name": "ML_AIRFLOW_PASSWORD",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "matchlab-ml-provision",
+                    "key": "airflow-password"
+                  }
+                }
+              },
+              {
+                "name": "ML_SUPERSET_DB_PASSWORD",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "matchlab-ml-provision",
+                    "key": "superset-password"
+                  }
+                }
+              }
+            ],
+            "volumeMounts": [],
+            "resources": {
+              "requests": {
+                "cpu": "100m",
+                "memory": "256Mi"
+              },
+              "limits": {
+                "cpu": "2",
+                "memory": "2Gi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              }
+            },
+            "command": [
+              "python",
+              "-m",
+              "matchlab_ml.provision"
+            ]
+          }
+        ],
+        "volumes": [],
+        "restartPolicy": "Never"
+      }
+    }
+  }
+}

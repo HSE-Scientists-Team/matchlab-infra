@@ -1,0 +1,121 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "name": "ml-db"
+  },
+  "spec": {
+    "replicas": 1,
+    "strategy": {
+      "type": "Recreate"
+    },
+    "selector": {
+      "matchLabels": {
+        "app": "ml-db"
+      }
+    },
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "ml-db",
+          "component": "ml"
+        }
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "securityContext": {
+          "runAsNonRoot": true,
+          "runAsUser": 70,
+          "runAsGroup": 0,
+          "fsGroup": 0,
+          "seccompProfile": {
+            "type": "RuntimeDefault"
+          }
+        },
+        "imagePullSecrets": [
+          {
+            "name": "ghcr-pull"
+          }
+        ],
+        "containers": [
+          {
+            "name": "postgres",
+            "image": "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+            "env": [
+              {
+                "name": "POSTGRES_USER",
+                "value": "ml_admin"
+              },
+              {
+                "name": "POSTGRES_DB",
+                "value": "postgres"
+              },
+              {
+                "name": "POSTGRES_PASSWORD",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "matchlab-ml-db-admin",
+                    "key": "password"
+                  }
+                }
+              },
+              {
+                "name": "PGDATA",
+                "value": "/var/lib/postgresql/data/pgdata"
+              }
+            ],
+            "volumeMounts": [
+              {
+                "name": "data",
+                "mountPath": "/var/lib/postgresql/data"
+              }
+            ],
+            "resources": {
+              "requests": {
+                "cpu": "100m",
+                "memory": "256Mi"
+              },
+              "limits": {
+                "cpu": "2",
+                "memory": "2Gi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              }
+            },
+            "ports": [
+              {
+                "containerPort": 5432
+              }
+            ],
+            "readinessProbe": {
+              "exec": {
+                "command": [
+                  "pg_isready",
+                  "-U",
+                  "ml_admin",
+                  "-d",
+                  "postgres"
+                ]
+              },
+              "periodSeconds": 5
+            }
+          }
+        ],
+        "volumes": [
+          {
+            "name": "data",
+            "persistentVolumeClaim": {
+              "claimName": "ml-db-data"
+            }
+          }
+        ]
+      }
+    }
+  }
+}
