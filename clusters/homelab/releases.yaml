@@ -48,7 +48,7 @@ spec:
   interval: 1m
   retryInterval: 30s
   timeout: 10m
-  path: ./apps/backend
+  path: ./apps/backend-ml
   prune: true
   suspend: false
   sourceRef:

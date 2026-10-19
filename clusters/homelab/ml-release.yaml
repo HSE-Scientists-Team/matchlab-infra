@@ -4,7 +4,7 @@ metadata:
   name: matchlab-ml
   namespace: flux-system
 spec:
-  suspend: true
+  suspend: false
   interval: 5m
   retryInterval: 1m
   timeout: 20m

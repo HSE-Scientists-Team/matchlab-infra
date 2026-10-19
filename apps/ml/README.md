@@ -1,8 +1,8 @@
 # ML / BI for the k3s pilot
 
-This base is **not included** by the active cluster. The separate
-`clusters/homelab/ml-release.yaml` also has `suspend: true`. No deployment is
-performed by building these files. Validate with `kubectl kustomize apps/ml` and
+This private pilot is managed by `clusters/homelab/ml-release.yaml`.
+Airflow starts with its DAG paused; run and validate the first real batch before
+enabling its schedule. Validate with `kubectl kustomize apps/ml` and
 `kubectl kustomize apps/backend-ml`.
 
 It supplies a separate metadata/analytics PostgreSQL, recommendation-only Redis,
@@ -61,9 +61,9 @@ and image vulnerability reports at that time; availability is not a security aud
 2. Build **all eleven Go services** plus ML/Airflow/MLflow and Superset. Coordinate migration
    00009 after Chat's 00008; an older Go image will reject an unknown SQL version.
    Keep existing backend config until migrations and ML checks succeed.
-3. Review secrets, real image digests, storage capacity and NetworkPolicy. Render
-   all bases. Add the suspended ML release to the cluster only in a reviewed PR.
-4. After separately authorized activation, provision roles/DBs with `ml-provision-v1`,
+3. Review SOPS secrets, real image digests, storage capacity and NetworkPolicy. Render
+   all bases before merging the GitOps release.
+4. After activation, provision roles/DBs with `ml-provision-v1`,
    then Superset with `superset-provision-v1`. Jobs wait for their databases and export views. The two idempotent provisioning
    Jobs use per-resource Flux force recreation when their pod template changes;
    this reruns provisioning after an image update without deleting any PVC.
@@ -71,7 +71,7 @@ and image vulnerability reports at that time; availability is not a security aud
 5. Keep the Airflow DAG paused. Trigger a manual run and validate export grants,
    analytics counts, tracking artifacts and Redis publication. Test with actual local
    accounts, blocks, full/closed projects and a recommendation-Redis outage.
-6. Switch the backend Flux path to `./apps/backend-ml` only in the approved release,
+6. The backend Flux path `./apps/backend-ml` is part of the reviewed release,
    preserving image substitutions/dependencies. It adds the Redis peer and secret.
    After validation, unpause the six-hour DAG. Do not create a Flux dependency cycle:
    ML depends on backend's owner views; backend can start with Redis unavailable.

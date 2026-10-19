@@ -5,3 +5,5 @@ resources:
 - releases.yaml
 - images.yaml
 - namespace.yaml
+- ml-images.yaml
+- ml-release.yaml
