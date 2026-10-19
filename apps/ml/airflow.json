@@ -20,6 +20,9 @@
           "app": "airflow",
           "component": "ml",
           "matchlab.io/ml-storage": "true"
+        },
+        "annotations": {
+          "matchlab.io/credentials-generation": "1"
         }
       },
       "spec": {
