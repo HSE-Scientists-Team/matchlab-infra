@@ -4,6 +4,9 @@ metadata:
   name: recommendation
 spec:
   template:
+    metadata:
+      annotations:
+        matchlab.io/credentials-generation: "1"
     spec:
       containers:
       - name: recommendation

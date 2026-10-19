@@ -19,6 +19,9 @@
         "labels": {
           "app": "superset",
           "component": "ml"
+        },
+        "annotations": {
+          "matchlab.io/credentials-generation": "1"
         }
       },
       "spec": {

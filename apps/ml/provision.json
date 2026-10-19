@@ -15,6 +15,9 @@
         "labels": {
           "app": "ml-provision-v1",
           "component": "ml"
+        },
+        "annotations": {
+          "matchlab.io/credentials-generation": "1"
         }
       },
       "spec": {
