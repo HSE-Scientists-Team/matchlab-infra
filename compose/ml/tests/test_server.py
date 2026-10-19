@@ -84,3 +84,23 @@ class RolloutTests(unittest.TestCase):
         sleep.assert_called_once_with(5)
         with self.assertRaisesRegex(RuntimeError, 'credentials omitted'):
             wait.wait_for_databases(attempts=1, probe=Mock(side_effect=RuntimeError('secret dsn')))
+
+class PublicUITests(unittest.TestCase):
+    def test_public_routes_are_encrypted_and_do_not_replace_login(self):
+        for name in ['ml-airflow-ingress.enc.yaml', 'ml-superset-ingress.enc.yaml']:
+            text = (ROOT / 'apps/secrets' / name).read_text()
+            self.assertIn('ENC[AES256_GCM,', text)
+            self.assertIn('sops:', text)
+        airflow = json.loads((ROOT / 'apps/ml/airflow.json').read_text())['spec']['template']['spec']['containers'][0]
+        env = {e['name']: e for e in airflow['env']}
+        self.assertEqual(env['AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_ALL_ADMINS']['value'], 'false')
+        self.assertIn('secretKeyRef', env['AIRFLOW__API__BASE_URL']['valueFrom'])
+        self.assertIn('secretKeyRef', env['AIRFLOW__CORE__EXECUTION_API_SERVER_URL']['valueFrom'])
+
+    def test_superset_uses_secure_cookies_and_prefixed_health(self):
+        text = (ROOT / 'apps/ml/superset_public_config.py').read_text()
+        self.assertIn('SESSION_COOKIE_SECURE = True', text)
+        self.assertIn('SESSION_COOKIE_PATH = os.environ["SUPERSET_APP_ROOT"]', text)
+        spec = json.loads((ROOT / 'apps/ml/superset.json').read_text())['spec']['template']['spec']
+        for probe in ['readinessProbe', 'startupProbe', 'livenessProbe']:
+            self.assertIn('SUPERSET_APP_ROOT', spec['containers'][0][probe]['exec']['command'][-1])

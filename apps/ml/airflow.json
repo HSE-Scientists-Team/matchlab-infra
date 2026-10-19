@@ -163,11 +163,21 @@
               },
               {
                 "name": "AIRFLOW__API__BASE_URL",
-                "value": "http://localhost:8086"
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "matchlab-ml-ui",
+                    "key": "airflow-base-url"
+                  }
+                }
               },
               {
                 "name": "AIRFLOW__CORE__EXECUTION_API_SERVER_URL",
-                "value": "http://localhost:8080/execution/"
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "matchlab-ml-ui",
+                    "key": "airflow-execution-url"
+                  }
+                }
               },
               {
                 "name": "GIT_PYTHON_REFRESH",
@@ -184,6 +194,10 @@
               {
                 "name": "ML_WAIT_DATABASE",
                 "value": "true"
+              },
+              {
+                "name": "AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_ALL_ADMINS",
+                "value": "false"
               }
             ],
             "volumeMounts": [
