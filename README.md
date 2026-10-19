@@ -7,12 +7,12 @@ Kubernetes-манифесты и GitOps MatchLab на Flux CD и Kustomize. Ко
 - `clusters/homelab/` — Flux, namespace приложения и версии образов в `images.yaml`.
 - `apps/secrets/` — Kubernetes Secret, зашифрованные SOPS/age; private key находится вне Git.
 - `apps/platform/` — PostgreSQL и SeaweedFS S3 с локальными PVC, Redis.
-- `apps/backend/` — десять backend-сервисов, frontend, Scalar, ConfigMap и публичный Ingress Gateway.
+- `apps/backend/` — одиннадцать backend-сервисов, frontend, Scalar, ConfigMap и публичный Ingress Gateway.
 - `.github/workflows/validate.yml` — проверка сборки Kustomize.
 
 ## GitOps
 
-Успешная ручная сборка в backend может создать PR с digest выбранных образов. После слияния Flux обновляет соответствующие Deployment. Секреты расшифровывает Flux; платформенные сервисы зависят от Secret, backend — от готовности платформы. Все десять backend-сервисов применяют общий SQL-набор перед открытием API под PostgreSQL advisory-блокировкой.
+Успешная ручная сборка в backend может создать PR с digest выбранных образов. После слияния Flux обновляет соответствующие Deployment. Секреты расшифровывает Flux; платформенные сервисы зависят от Secret, backend — от готовности платформы. Все одиннадцать backend-сервисов применяют общий SQL-набор перед открытием API под PostgreSQL advisory-блокировкой.
 
 Несекретная конфигурация монтируется из ConfigMap, пароли передаются через ссылки `secretKeyRef`. Scalar доступен через `/docs/` на origin Gateway. PostgreSQL закреплён за узлом с меткой `matchlab.io/storage=true`; Redis не имеет постоянного тома.
 
@@ -84,3 +84,11 @@ Deployment использует приватный образ из matchlab-fron
 Для следующего релиза запустите Actions → Build frontend image в matchlab-frontend на master, оставив propose_deploy включённым. После проверок workflow публикует образ и создаёт infra PR только с FRONTEND_IMAGE. После его слияния Flux выполняет rollout. Пересобирать backend при изменениях frontend не требуется. Первичная настройка INFRA_REPO_TOKEN описана в README frontend.
 
 CPU, RAM, рестарты и image digest frontend доступны в существующем дашборде Services and releases через kube-state-metrics/cAdvisor. Сам Nginx не экспортирует Go-метрики и в scrape allowlist Go-сервисов не добавляется.
+
+## Chat (KAN-37)
+
+Chat (`chat:8091`) предоставляет личные текстовые диалоги через Gateway под `/api/v1/chat`. gRPC остаётся внутренним. Сервис проверяет сеанс и блокировки через User, владеет схемой PostgreSQL `chat` и получает пароль БД из существующего Secret `matchlab-postgres`. Дополнительных секретов или внешних портов не требуется.
+
+Релиз включает общую миграцию `00008`: необходимо собрать и обновить все одиннадцать Go-сервисов и Scalar из одной версии backend. Старые бинарники не распознают новую историю миграций при перезапуске. `CHAT_IMAGE` и остальные версии закреплены digest в `clusters/homelab/images.yaml`; frontend обновляется независимо. Перед выпуском сохраняйте резервную копию PostgreSQL; откат образов на версию без миграции 00008 после её применения невозможен без согласованного восстановления БД.
+
+Prometheus обнаруживает Chat по именованному порту `metrics`; существующие дашборды показывают его запросы, версии и ресурсы автоматически. Health probes используют внутренний gRPC health endpoint.

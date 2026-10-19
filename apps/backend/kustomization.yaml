@@ -11,6 +11,7 @@ resources:
 - search.yaml
 - recommendation.yaml
 - admin.yaml
+- chat.yaml
 - ingress.yaml
 - api-docs.yaml
 - frontend.yaml
@@ -45,6 +46,9 @@ configMapGenerator:
 - name: admin-config
   files:
   - config.yaml=config/admin.yaml
+- name: chat-config
+  files:
+  - config.yaml=config/chat.yaml
 patches:
 - target:
     kind: Deployment
