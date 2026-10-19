@@ -47,7 +47,7 @@
             "env": [
               {
                 "name": "SUPERSET_CONFIG_PATH",
-                "value": "/app/bootstrap/superset_config.py"
+                "value": "/etc/superset-public/config.py"
               },
               {
                 "name": "SUPERSET_SECRET_KEY",
@@ -75,9 +75,24 @@
                     "key": "analytics-url"
                   }
                 }
+              },
+              {
+                "name": "SUPERSET_APP_ROOT",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "matchlab-ml-ui",
+                    "key": "superset-root"
+                  }
+                }
               }
             ],
-            "volumeMounts": [],
+            "volumeMounts": [
+              {
+                "name": "public-config",
+                "mountPath": "/etc/superset-public",
+                "readOnly": true
+              }
+            ],
             "resources": {
               "requests": {
                 "cpu": "100m",
@@ -114,34 +129,50 @@
               }
             ],
             "readinessProbe": {
-              "httpGet": {
-                "path": "/health",
-                "port": 8088
-              },
               "initialDelaySeconds": 30,
-              "periodSeconds": 10
+              "periodSeconds": 10,
+              "exec": {
+                "command": [
+                  "python",
+                  "-c",
+                  "import os,urllib.request; urllib.request.urlopen(\"http://127.0.0.1:8088\"+os.environ[\"SUPERSET_APP_ROOT\"]+\"/health\",timeout=3)"
+                ]
+              }
             },
             "startupProbe": {
-              "httpGet": {
-                "path": "/health",
-                "port": 8088
-              },
               "periodSeconds": 10,
               "timeoutSeconds": 5,
-              "failureThreshold": 90
+              "failureThreshold": 90,
+              "exec": {
+                "command": [
+                  "python",
+                  "-c",
+                  "import os,urllib.request; urllib.request.urlopen(\"http://127.0.0.1:8088\"+os.environ[\"SUPERSET_APP_ROOT\"]+\"/health\",timeout=3)"
+                ]
+              }
             },
             "livenessProbe": {
-              "httpGet": {
-                "path": "/health",
-                "port": 8088
-              },
               "periodSeconds": 30,
               "timeoutSeconds": 5,
-              "failureThreshold": 6
+              "failureThreshold": 6,
+              "exec": {
+                "command": [
+                  "python",
+                  "-c",
+                  "import os,urllib.request; urllib.request.urlopen(\"http://127.0.0.1:8088\"+os.environ[\"SUPERSET_APP_ROOT\"]+\"/health\",timeout=3)"
+                ]
+              }
             }
           }
         ],
-        "volumes": []
+        "volumes": [
+          {
+            "name": "public-config",
+            "configMap": {
+              "name": "superset-public-config"
+            }
+          }
+        ]
       }
     }
   }

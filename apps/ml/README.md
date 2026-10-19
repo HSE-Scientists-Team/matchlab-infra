@@ -15,14 +15,18 @@ This is a pilot configuration, without HA or a tested capacity guarantee.
 Redis is disposable, noeviction; it never shares Auth's Redis. Go falls back to
 live Search when this cache is unavailable.
 
-All services are ClusterIP. There is no Ingress and no unauthenticated public
-tracking endpoint. Access private UIs with an authorized Kubernetes port-forward
-(over its authenticated encrypted API connection); keep localhost binding.
-Airflow and Superset also require their generated operator accounts. MLflow has
+All services remain ClusterIP. Airflow and Superset have HTTPS ingress routes
+whose random paths and application URL settings are encrypted with SOPS under
+apps/secrets; never include their decrypted values in public issues or logs.
+The links do not replace application authentication. Superset uses Secure cookies
+scoped to its URL prefix. UI pods accept network ingress only from Traefik.
+MLflow has no public ingress; access it with an authorized localhost port-forward.
+Airflow and Superset require their generated operator accounts. MLflow has
 no app authentication: its NetworkPolicy accepts only Airflow / `app=ml-batch`
 clients. Verify policy enforcement by the cluster CNI before activation. Public
 UI exposure requires a separately reviewed TLS/auth proxy; changing Service type
-is insufficient. Superset's HTTP cookie setting is for localhost forwarding.
+is insufficient. The image-owned HTTP cookie configuration remains for local Compose; the cluster
+layers its HTTPS configuration through a ConfigMap.
 Do not give ordinary product users the Superset bootstrap Admin account: provision
 read-only BI roles for their dashboards before onboarding them.
 

@@ -19,6 +19,16 @@
     "airflow-service.json",
     "superset-service.json",
     "network-policy.json",
-    "freshness.json"
+    "freshness.json",
+    "ui-headers.json",
+    "ui-network-policy.json"
+  ],
+  "configMapGenerator": [
+    {
+      "name": "superset-public-config",
+      "files": [
+        "config.py=superset_public_config.py"
+      ]
+    }
   ]
 }
