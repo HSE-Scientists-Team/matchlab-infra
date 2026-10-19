@@ -1,0 +1,127 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "name": "superset"
+  },
+  "spec": {
+    "replicas": 1,
+    "strategy": {
+      "type": "Recreate"
+    },
+    "selector": {
+      "matchLabels": {
+        "app": "superset"
+      }
+    },
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "superset",
+          "component": "ml"
+        }
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "securityContext": {
+          "runAsNonRoot": true,
+          "runAsUser": 1000,
+          "runAsGroup": 0,
+          "fsGroup": 0,
+          "seccompProfile": {
+            "type": "RuntimeDefault"
+          }
+        },
+        "imagePullSecrets": [
+          {
+            "name": "ghcr-pull"
+          }
+        ],
+        "containers": [
+          {
+            "name": "superset",
+            "image": "${SUPERSET_IMAGE}",
+            "env": [
+              {
+                "name": "SUPERSET_CONFIG_PATH",
+                "value": "/app/bootstrap/superset_config.py"
+              },
+              {
+                "name": "SUPERSET_SECRET_KEY",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "matchlab-superset",
+                    "key": "secret-key"
+                  }
+                }
+              },
+              {
+                "name": "SUPERSET_METADATA_URL",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "matchlab-superset",
+                    "key": "metadata-url"
+                  }
+                }
+              },
+              {
+                "name": "SUPERSET_ANALYTICS_URL",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "name": "matchlab-superset",
+                    "key": "analytics-url"
+                  }
+                }
+              }
+            ],
+            "volumeMounts": [],
+            "resources": {
+              "requests": {
+                "cpu": "100m",
+                "memory": "256Mi"
+              },
+              "limits": {
+                "cpu": "2",
+                "memory": "2Gi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              }
+            },
+            "command": [
+              "gunicorn"
+            ],
+            "args": [
+              "--bind",
+              "0.0.0.0:8088",
+              "--workers",
+              "1",
+              "--timeout",
+              "120",
+              "superset.app:create_app()"
+            ],
+            "ports": [
+              {
+                "containerPort": 8088
+              }
+            ],
+            "readinessProbe": {
+              "httpGet": {
+                "path": "/health",
+                "port": 8088
+              },
+              "initialDelaySeconds": 30,
+              "periodSeconds": 10
+            }
+          }
+        ],
+        "volumes": []
+      }
+    }
+  }
+}
