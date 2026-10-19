@@ -8,6 +8,9 @@ enabling its schedule. Validate with `kubectl kustomize apps/ml` and
 It supplies a separate metadata/analytics PostgreSQL, recommendation-only Redis,
 MLflow, Airflow LocalExecutor and provisioned Superset. PVCs use the cluster's
 default StorageClass; one replica and Recreate support single-node RWO storage.
+Required pod anti-affinity spreads PostgreSQL, MLflow and Airflow across three
+nodes so their 27Gi of requested local storage does not accumulate on one node.
+Local-path requests are not disk quotas; monitor actual node free space.
 This is a pilot configuration, without HA or a tested capacity guarantee.
 Redis is disposable, noeviction; it never shares Auth's Redis. Go falls back to
 live Search when this cache is unavailable.

@@ -18,7 +18,8 @@
       "metadata": {
         "labels": {
           "app": "airflow",
-          "component": "ml"
+          "component": "ml",
+          "matchlab.io/ml-storage": "true"
         }
       },
       "spec": {
@@ -270,7 +271,21 @@
               "claimName": "airflow-logs"
             }
           }
-        ]
+        ],
+        "affinity": {
+          "podAntiAffinity": {
+            "requiredDuringSchedulingIgnoredDuringExecution": [
+              {
+                "labelSelector": {
+                  "matchLabels": {
+                    "matchlab.io/ml-storage": "true"
+                  }
+                },
+                "topologyKey": "kubernetes.io/hostname"
+              }
+            ]
+          }
+        }
       }
     }
   }
