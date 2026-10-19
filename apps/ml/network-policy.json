@@ -1,0 +1,43 @@
+{
+  "apiVersion": "networking.k8s.io/v1",
+  "kind": "NetworkPolicy",
+  "metadata": {
+    "name": "mlflow-private"
+  },
+  "spec": {
+    "podSelector": {
+      "matchLabels": {
+        "app": "mlflow"
+      }
+    },
+    "policyTypes": [
+      "Ingress"
+    ],
+    "ingress": [
+      {
+        "from": [
+          {
+            "podSelector": {
+              "matchLabels": {
+                "app": "airflow"
+              }
+            }
+          },
+          {
+            "podSelector": {
+              "matchLabels": {
+                "app": "ml-batch"
+              }
+            }
+          }
+        ],
+        "ports": [
+          {
+            "port": 5000,
+            "protocol": "TCP"
+          }
+        ]
+      }
+    ]
+  }
+}

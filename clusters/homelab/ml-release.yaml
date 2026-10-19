@@ -1,0 +1,25 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: matchlab-ml
+  namespace: flux-system
+spec:
+  suspend: true
+  interval: 5m
+  retryInterval: 1m
+  timeout: 20m
+  path: ./apps/ml
+  targetNamespace: matchlab
+  prune: false
+  wait: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  dependsOn:
+  - name: matchlab-backend
+  postBuild:
+    substituteFrom:
+    - kind: ConfigMap
+      name: matchlab-images
+    - kind: ConfigMap
+      name: matchlab-ml-images

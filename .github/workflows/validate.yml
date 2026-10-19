@@ -15,9 +15,11 @@ jobs:
           version: v1.36.1
       - name: Собрать Kustomize базы
         run: |
-          for path in clusters/homelab apps/secrets apps/platform apps/backend apps/cert-manager apps/tls apps/monitoring; do
+          for path in clusters/homelab apps/secrets apps/platform apps/backend apps/cert-manager apps/tls apps/monitoring apps/ml apps/backend-ml; do
             kubectl kustomize "$path" > /dev/null
           done
+      - name: Проверить ML pilot
+        run: python3 -m unittest discover -s compose/ml/tests -v
       - name: Проверить контракты мониторинга
         run: python3 -m unittest discover -s scripts -p "test_*.py"
       - name: Проверить конфигурацию Prometheus и alert rules

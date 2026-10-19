@@ -1,0 +1,24 @@
+{
+  "apiVersion": "kustomize.config.k8s.io/v1beta1",
+  "kind": "Kustomization",
+  "resources": [
+    "ml-db-data.json",
+    "mlflow-data.json",
+    "ml-artifacts.json",
+    "airflow-logs.json",
+    "database.json",
+    "redis.json",
+    "mlflow.json",
+    "provision.json",
+    "airflow.json",
+    "superset-init.json",
+    "superset.json",
+    "ml-db-service.json",
+    "recommendation-redis-service.json",
+    "mlflow-service.json",
+    "airflow-service.json",
+    "superset-service.json",
+    "network-policy.json",
+    "freshness.json"
+  ]
+}
