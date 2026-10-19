@@ -7,10 +7,10 @@ ROOT = Path(__file__).resolve().parents[3]
 
 
 class ServerTests(unittest.TestCase):
-    def test_server_is_opt_in_and_interfaces_are_private(self):
+    def test_server_is_enabled_with_private_interfaces(self):
         release = (ROOT / 'clusters/homelab/ml-release.yaml').read_text()
-        self.assertIn('suspend: true', release)
-        self.assertNotIn('ml-release.yaml', (ROOT / 'clusters/homelab/kustomization.yaml').read_text())
+        self.assertIn('suspend: false', release)
+        self.assertIn('ml-release.yaml', (ROOT / 'clusters/homelab/kustomization.yaml').read_text())
         resources = json.loads((ROOT / 'apps/ml/kustomization.yaml').read_text())['resources']
         for name in resources:
             resource = json.loads((ROOT / 'apps/ml' / name).read_text())

@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: matchlab-ml-images
+  namespace: flux-system
+data:
+  SUPERSET_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/superset@sha256:cfc5f94891c7324644aace07d45c5f805d0cf0aa4814672a5e7f4547817be3aa
+  ML_CODE_VERSION: "84680514971af7107be06f90521a573253950dec"

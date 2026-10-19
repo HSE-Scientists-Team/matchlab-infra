@@ -18,7 +18,8 @@
       "metadata": {
         "labels": {
           "app": "ml-db",
-          "component": "ml"
+          "component": "ml",
+          "matchlab.io/ml-storage": "true"
         }
       },
       "spec": {
@@ -104,6 +105,34 @@
                 ]
               },
               "periodSeconds": 5
+            },
+            "startupProbe": {
+              "exec": {
+                "command": [
+                  "pg_isready",
+                  "-U",
+                  "ml_admin",
+                  "-d",
+                  "postgres"
+                ]
+              },
+              "periodSeconds": 10,
+              "timeoutSeconds": 5,
+              "failureThreshold": 90
+            },
+            "livenessProbe": {
+              "exec": {
+                "command": [
+                  "pg_isready",
+                  "-U",
+                  "ml_admin",
+                  "-d",
+                  "postgres"
+                ]
+              },
+              "periodSeconds": 30,
+              "timeoutSeconds": 5,
+              "failureThreshold": 6
             }
           }
         ],
@@ -114,7 +143,21 @@
               "claimName": "ml-db-data"
             }
           }
-        ]
+        ],
+        "affinity": {
+          "podAntiAffinity": {
+            "requiredDuringSchedulingIgnoredDuringExecution": [
+              {
+                "labelSelector": {
+                  "matchLabels": {
+                    "matchlab.io/ml-storage": "true"
+                  }
+                },
+                "topologyKey": "kubernetes.io/hostname"
+              }
+            ]
+          }
+        }
       }
     }
   }
