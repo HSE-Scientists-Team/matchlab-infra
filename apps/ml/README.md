@@ -58,14 +58,16 @@ and image vulnerability reports at that time; availability is not a security aud
 1. Pass local Go/integration/Compose/API checks. Back up the business DB, analytics
    and metadata DBs, MLflow volume and artifacts; perform a restore rehearsal into
    isolated storage. Backups must use restricted access and encryption.
-2. Build **all ten Go services** plus ML/Airflow/MLflow and Superset. Coordinate migration
-   00008 with Admin's 00007; an older Go image will reject an unknown SQL version.
+2. Build **all eleven Go services** plus ML/Airflow/MLflow and Superset. Coordinate migration
+   00009 after Chat's 00008; an older Go image will reject an unknown SQL version.
    Keep existing backend config until migrations and ML checks succeed.
 3. Review secrets, real image digests, storage capacity and NetworkPolicy. Render
    all bases. Add the suspended ML release to the cluster only in a reviewed PR.
 4. After separately authorized activation, provision roles/DBs with `ml-provision-v1`,
-   then Superset with `superset-provision-v1`. Jobs retry startup dependencies;
-   immutable Job changes need a versioned Job name. Retain completed Jobs for review.
+   then Superset with `superset-provision-v1`. Jobs wait for their databases and export views. The two idempotent provisioning
+   Jobs use per-resource Flux force recreation when their pod template changes;
+   this reruns provisioning after an image update without deleting any PVC.
+   Completed Jobs remain until the next provisioning release.
 5. Keep the Airflow DAG paused. Trigger a manual run and validate export grants,
    analytics counts, tracking artifacts and Redis publication. Test with actual local
    accounts, blocks, full/closed projects and a recommendation-Redis outage.

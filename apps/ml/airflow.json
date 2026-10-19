@@ -176,6 +176,10 @@
               {
                 "name": "AIRFLOW__DAG_PROCESSOR__MIN_FILE_PROCESS_INTERVAL",
                 "value": "120"
+              },
+              {
+                "name": "ML_WAIT_DATABASE",
+                "value": "true"
               }
             ],
             "volumeMounts": [
@@ -216,12 +220,40 @@
               }
             ],
             "readinessProbe": {
-              "httpGet": {
-                "path": "/api/v2/monitor/health",
-                "port": 8080
+              "exec": {
+                "command": [
+                  "python",
+                  "-m",
+                  "matchlab_ml.health"
+                ]
               },
-              "initialDelaySeconds": 60,
-              "periodSeconds": 15
+              "periodSeconds": 15,
+              "timeoutSeconds": 5,
+              "failureThreshold": 3
+            },
+            "startupProbe": {
+              "exec": {
+                "command": [
+                  "python",
+                  "-m",
+                  "matchlab_ml.health"
+                ]
+              },
+              "periodSeconds": 10,
+              "timeoutSeconds": 5,
+              "failureThreshold": 90
+            },
+            "livenessProbe": {
+              "exec": {
+                "command": [
+                  "python",
+                  "-m",
+                  "matchlab_ml.health"
+                ]
+              },
+              "periodSeconds": 30,
+              "timeoutSeconds": 5,
+              "failureThreshold": 6
             }
           }
         ],

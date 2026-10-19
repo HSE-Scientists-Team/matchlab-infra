@@ -32,6 +32,8 @@ def layout(charts):
 
 
 def main():
+    from wait_for_databases import wait_for_databases
+    wait_for_databases()
     subprocess.run(["superset", "db", "upgrade"], check=True)
     subprocess.run(["superset", "init"], check=True)
     from superset.app import create_app

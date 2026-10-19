@@ -72,7 +72,7 @@ groups:
 - name: matchlab-ml
   rules:
   - alert: RecommendationFreshnessCheckFailed
-    expr: kube_job_status_failed{namespace="matchlab",job_name=~"ml-freshness-.*"} > 0
+    expr: kube_job_failed{namespace="matchlab",job_name=~"ml-freshness-.*",condition="true"} > 0
     for: 5m
     labels:
       severity: warning

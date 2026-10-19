@@ -55,7 +55,7 @@ scrape_configs:
   metric_relabel_configs:
   - source_labels: [__name__]
     action: keep
-    regex: kube_node_status_condition|kube_pod_info|kube_pod_labels|kube_pod_container_info|kube_pod_container_status_.*|kube_pod_container_resource_.*|kube_deployment_status_replicas.*|kube_deployment_spec_replicas|kube_statefulset_status_replicas.*|kube_daemonset_status_.*|kube_persistentvolumeclaim_.*
+    regex: kube_node_status_condition|kube_pod_info|kube_pod_labels|kube_pod_container_info|kube_pod_container_status_.*|kube_pod_container_resource_.*|kube_deployment_status_replicas.*|kube_deployment_spec_replicas|kube_statefulset_status_replicas.*|kube_daemonset_status_.*|kube_persistentvolumeclaim_.*|kube_job_failed|kube_job_status_succeeded|kube_cronjob_status_.*
   sample_limit: 10000
 - job_name: cadvisor
   kubernetes_sd_configs:

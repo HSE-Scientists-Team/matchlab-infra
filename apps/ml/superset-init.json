@@ -2,7 +2,10 @@
   "apiVersion": "batch/v1",
   "kind": "Job",
   "metadata": {
-    "name": "superset-provision-v1"
+    "name": "superset-provision-v1",
+    "annotations": {
+      "kustomize.toolkit.fluxcd.io/force": "enabled"
+    }
   },
   "spec": {
     "backoffLimit": 2,
