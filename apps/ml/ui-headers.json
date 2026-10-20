@@ -6,7 +6,7 @@
   },
   "spec": {
     "headers": {
-      "referrerPolicy": "no-referrer",
+      "referrerPolicy": "same-origin",
       "stsSeconds": 31536000,
       "contentTypeNosniff": true,
       "customResponseHeaders": {
