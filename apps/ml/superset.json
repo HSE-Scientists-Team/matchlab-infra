@@ -21,7 +21,8 @@
           "component": "ml"
         },
         "annotations": {
-          "matchlab.io/credentials-generation": "1"
+          "matchlab.io/credentials-generation": "1",
+          "matchlab.io/ui-origin-generation": "2"
         }
       },
       "spec": {
