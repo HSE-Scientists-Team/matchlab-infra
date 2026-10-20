@@ -209,6 +209,11 @@
               {
                 "name": "logs",
                 "mountPath": "/opt/airflow/logs"
+              },
+              {
+                "name": "proxy-plugin",
+                "mountPath": "/opt/airflow/plugins",
+                "readOnly": true
               }
             ],
             "resources": {
@@ -287,6 +292,12 @@
             "name": "logs",
             "persistentVolumeClaim": {
               "claimName": "airflow-logs"
+            }
+          },
+          {
+            "name": "proxy-plugin",
+            "configMap": {
+              "name": "airflow-proxy-plugin"
             }
           }
         ],
