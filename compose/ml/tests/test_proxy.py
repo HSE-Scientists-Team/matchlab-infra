@@ -22,7 +22,7 @@ class AirflowProxyContract(unittest.TestCase):
                 self.assertEqual(peer['namespaceSelector']['matchLabels']['kubernetes.io/metadata.name'], 'kube-system')
                 self.assertEqual(peer['podSelector']['matchLabels']['app.kubernetes.io/name'], 'traefik')
         deployment = json.loads((ROOT / 'apps/ml/airflow.json').read_text())['spec']['template']['spec']
-        self.assertTrue(any(v['mountPath'] == '/opt/airflow/plugins' and v['readOnly'] for v in deployment['containers'][0]['volumeMounts']))
+        self.assertTrue(any(v['mountPath'] == '/opt/airflow/plugins/matchlab_proxy.py' and v.get('subPath') == 'matchlab_proxy.py' and v['readOnly'] for v in deployment['containers'][0]['volumeMounts']))
         self.assertTrue(any(v.get('configMap', {}).get('name') == 'airflow-proxy-plugin' for v in deployment['volumes']))
 
 if __name__ == '__main__':

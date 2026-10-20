@@ -212,8 +212,9 @@
               },
               {
                 "name": "proxy-plugin",
-                "mountPath": "/opt/airflow/plugins",
-                "readOnly": true
+                "mountPath": "/opt/airflow/plugins/matchlab_proxy.py",
+                "readOnly": true,
+                "subPath": "matchlab_proxy.py"
               }
             ],
             "resources": {
