@@ -8,10 +8,10 @@ spec:
   ingressClassName: traefik
   tls:
   - hosts:
-    - api.matchlab.space
-    secretName: matchlab-api-tls
+    - matchlab.space
+    secretName: matchlab-web-tls
   rules:
-  - host: api.matchlab.space
+  - host: matchlab.space
     http:
       paths:
       - path: /grafana

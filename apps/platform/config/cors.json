@@ -2,7 +2,8 @@
   "CORSRules": [
     {
       "AllowedOrigins": [
-        "https://api.matchlab.space"
+        "https://api.matchlab.space",
+        "https://matchlab.space"
       ],
       "AllowedMethods": [
         "GET",

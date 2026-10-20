@@ -15,7 +15,7 @@ data:
   RECOMMENDATION_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/recommendation@sha256:5f56c67d7dcc8a816b3df881ef57c40616177d8013e0a28b5ab075f39152aed6
   SEARCH_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/search@sha256:2604f6107f0130c9833e1b265096b00872a057b7380f0571651e7b721acec36b
   ADMIN_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/admin@sha256:713dc88cd5246caa36caced15dcf87c39eb546a000ec4bb022e56a563a8980cf
-  FRONTEND_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/frontend@sha256:55a91d53fe29364fb5bc5f646852532d1b0fb02d327db3292de191c12880f4d6
+  FRONTEND_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/frontend@sha256:969575f81a6def54812f512da8aef2042b8d94497ec172c5624405f551b31554
   CHAT_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/chat@sha256:da944c2cfd064822083888a709cfa73f84ab13d49e575c8528f700d6e8255005
   AIRFLOW_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/airflow@sha256:3d6ede0d43d8779e7b59b524545f6cb47de3d3b121dbc2fb50d5b329500e7154
   ML_IMAGE: ghcr.io/hse-scientists-team/matchlab-services/ml@sha256:44e6ab3a157b72d776b9dfd72feaa82433dd6fb0f2aa4587230d1c2fad11c350

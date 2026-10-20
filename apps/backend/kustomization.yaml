@@ -13,6 +13,7 @@ resources:
 - admin.yaml
 - chat.yaml
 - ingress.yaml
+- web-ingress.yaml
 - api-docs.yaml
 - frontend.yaml
 configMapGenerator:

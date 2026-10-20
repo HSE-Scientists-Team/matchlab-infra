@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: seaweedfs-init
+  name: seaweedfs-init-web-origin
   annotations:
     kustomize.toolkit.fluxcd.io/force: enabled
 spec:
