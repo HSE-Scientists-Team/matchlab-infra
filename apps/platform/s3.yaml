@@ -28,6 +28,7 @@ spec:
       labels:
         app: seaweedfs
     spec:
+      enableServiceLinks: false
       nodeSelector:
         matchlab.io/storage: 'true'
       containers:
