@@ -29,6 +29,12 @@
       "files": [
         "config.py=superset_public_config.py"
       ]
+    },
+    {
+      "name": "airflow-proxy-plugin",
+      "files": [
+        "matchlab_proxy.py=airflow_proxy_plugin.py"
+      ]
     }
   ]
 }
