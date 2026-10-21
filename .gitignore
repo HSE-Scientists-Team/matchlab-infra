@@ -12,3 +12,9 @@ kubeconfig*
 
 __pycache__/
 *.py[cod]
+
+# Local Trivy reports and cache
+/trivy-*.sarif
+/trivy_envs.txt
+/.cache/trivy/
+/.trivy-rendered/
